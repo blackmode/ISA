@@ -4,7 +4,7 @@ ISA
 POSTUP VYTVOŘENÍ REPA V KOMPLU:
 1.) $ git init
 
-2.)$ nano .git/config a pridat tam:
+2.) $ nano .git/config a pridat tam:
 
     [remote "origin"]
     
