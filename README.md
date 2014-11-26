@@ -5,8 +5,11 @@ POSTUP VYTVOŘENÍ REPA V KOMPLU:
 1.) vytvorite repozitar: $ git init
 
 2.) otevrete soubor config: $ vim .git/config pridate tam:
+
     [remote "origin"]
+    
     url = git@github.com:BigTony/ifj2013.git
+    
     fetch = +refs/heads/*:refs/remotes/origin/*
 
 
