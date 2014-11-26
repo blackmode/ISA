@@ -79,30 +79,31 @@ def registerParse(pkt):
 
 # vyparsovani dulezitych dat z paketu invite
 def pktParser(pkt):
+	# init
+	invitePacked = {}
+
+	# zpracovani SIP
 	if pkt.haslayer(Raw):
 		# nacteni obsahu paketu
 		load = repr(pkt[Raw].load)
 
 		# ODSTRRANENI \'
-		pkt = load.replace("'","") 
-
-		# init
-		invitePacked = {}
+		paket = load.replace("'","") 
 
 		# zpracovani paketu
-		uri   	   = re.search(r"(?<=uri\=[\"\'])\s*[^\"]+(?=\")", pkt)
-		in_uri     = re.search(r"(?<=in_uri\=sip:)[^\@]+@[\w\.\-\_\:]+(?=\s)", pkt)
-		out_uri    = re.search(r"(?<=out_uri\=sip:)[^\@]+@[\w\.\-\_\:]+(?=\s)", pkt)
-		bye   	   = re.search(r"(?<=BYE\ssip:)\s*[^\s]+(?=\s)", pkt)
-		ack   	   = re.search(r"(?<=ACK\ssip:)\s*[^\s]+(?=\s)", pkt)
-		register   = re.search(r"(?<=REGISTER\ssip:)\s*[^\s]+(?=\s)", pkt)
-		invite     = re.search(r"(?<=INVITE\ssip:)[\w]+@[\w]+.[a-zA-Z]+", pkt)
-		udp        = re.search(r"(?<=UDP\s)[\w\.]+(?=;)", pkt)
-		to         = re.search(r"(?<=[tT][oO]:\s)([\w\s]+)?<[^>]+>", pkt)
-		fromP      = re.search(r"(?<=From:\s)([\"\'\w\s]+)?<[^>]+>", pkt)
-		contact    = re.search(r"(?<=Contact:\s)([\"\'\w\s]+)?<[^>]+>", pkt)
-		callid     = re.search(r"(?<=Call-ID:\s)[\"\'\w\s\-]+@[\"\'\w\s\-\.]+(?=[\\\s])", pkt)
-		branch     = re.search(r"(?<=branch=)\s*[\"\'\w\s\-\.]+(?=[\\\s])", pkt)
+		uri   	   = re.search(r"(?<=uri\=[\"\'])\s*[^\"]+(?=\")", paket)
+		in_uri     = re.search(r"(?<=in_uri\=sip:)[^\@]+@[\w\.\-\_\:]+(?=\s)", paket)
+		out_uri    = re.search(r"(?<=out_uri\=sip:)[^\@]+@[\w\.\-\_\:]+(?=\s)", paket)
+		bye   	   = re.search(r"(?<=BYE\ssip:)\s*[^\s]+(?=\s)", paket)
+		ack   	   = re.search(r"(?<=ACK\ssip:)\s*[^\s]+(?=\s)", paket)
+		register   = re.search(r"(?<=REGISTER\ssip:)\s*[^\s]+(?=\s)", paket)
+		invite     = re.search(r"(?<=INVITE\ssip:)[\w]+@[\w]+.[a-zA-Z]+", paket)
+		udp        = re.search(r"(?<=UDP\s)[\w\.]+(?=;)", paket)
+		to         = re.search(r"(?<=[tT][oO]:\s)([\w\s]+)?<[^>]+>", paket)
+		fromP      = re.search(r"(?<=From:\s)([\"\'\w\s]+)?<[^>]+>", paket)
+		contact    = re.search(r"(?<=Contact:\s)([\"\'\w\s]+)?<[^>]+>", paket)
+		callid     = re.search(r"(?<=Call-ID:\s)[\"\'\w\s\-]+@[\"\'\w\s\-\.]+(?=[\\\s])", paket)
+		branch     = re.search(r"(?<=branch=)\s*[\"\'\w\s\-\.]+(?=[\\\s])", paket)
 
 		# nahazeni do slovniku
 		if register is not None: invitePacked["register"] 	= register.group(0)
@@ -119,9 +120,21 @@ def pktParser(pkt):
 		if out_uri 	is not None: invitePacked["out_uri"]	= out_uri.group(0)
 		if branch 	is not None: invitePacked["branch"]		= branch.group(0)
 
-		#navrat
-		return invitePacked
-	return False
+	# zpracovani dat  z IP vrstvy
+	if pkt.haslayer(IP):
+		# zakladni parsovani se scapy
+		invitePacked["source"]		= pkt[IP].src
+		invitePacked["destination"] = pkt[IP].dst	
+		invitePacked["protocol"]	= pkt[IP].proto
+
+	# zpracovani dat  z UDP vrstvy
+	if pkt.haslayer(UDP):
+		# zakladni parsovani se scapy
+		invitePacked["sourcePort"]		= pkt[UDP].sport
+		invitePacked["destinationPort"] = pkt[UDP].dport	
+
+	#navrat
+	return invitePacked
 
 # overeni protokoli a portu
 def checkProtocolAndPort (pkt,protocols,port):
@@ -270,9 +283,9 @@ def executePkts(pkts):
 	# zpracovani hovoru
 	for index in range (len(pkts)):
 		if pkts[index]:
-			#print pkts[index].show()
-			print index
-			print pkts[index].load
+			print pkts[index].show()
+			#print index
+			#print pkts[index].load
 
 			if pktSearch(pkts[index],"REGISTER"):
 				#print "skacu do REGISTER"
