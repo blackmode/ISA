@@ -380,6 +380,23 @@ def executePkts(pkts):
 	return registers
 
 
+# sniffovaci funkce pro odposlech rozhrani
+def sniffIfaceAndPort(interface,port):
+	if interface and port:
+		# odposlech rozhrani
+		ret = sniff(iface=interface,filter="port "+port,prn=filter2) # prn = funkce podle ktere se bude filtrovat
+	else:
+		return False
+
+	# navrat jako odposlechnute pakety a pote zpracovani jako souboru pcap
+	return ret
+
+
+# prevod paketu do XML
+def pktsToXML(pkts):
+	return pkts
+
+
 #### TEST FUNCTIONS ############
 def test():
 	pkts = rdpcap('sip.pcap') 
