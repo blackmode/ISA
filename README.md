@@ -2,19 +2,19 @@ ISA
 ===
 
 POSTUP VYTVOŘENÍ REPA V KOMPLU:
-1.) vytvorite repozitar: $ git init
+1.) $ git init
 
-2.) otevrete soubor config: $ vim .git/config pridate tam:
+2.)$ nano .git/config a pridat tam:
 
     [remote "origin"]
     
-    url = git@github.com:BigTony/ifj2013.git
+    url = git@github.com:blackmode/nameOfProject.git
     
     fetch = +refs/heads/*:refs/remotes/origin/*
 
 
-3.) pak by melo stacit uz jen dat $ git pull origin mastera melo by to vse stahnout
+3.) $ git pull origin master --> stazeni repa
 
-4.) kdyz udelate nejaky zmeny tak date $ git commit -am "popis co ste udelali, nejakej kratkej"
+4.) $ git commit -am "popis co ste udelali, nejakej kratkej"
 
-5.) a pak $ git push origin 
+5.) $ git push origin     --> nahrani souboru
