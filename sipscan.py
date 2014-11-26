@@ -1,15 +1,19 @@
 #! /usr/bin/env python
 #from scapy import *
-import sys
-import logging
-logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-from scapy.all import *
-import re
-import os
-import string
-import argparse
-import fileinput
-import types
+try:
+	import sys
+	import logging
+	logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+	from scapy.all import *
+	import re
+	import os
+	import string
+	import argparse
+	import fileinput
+	import types
+except:
+	sys.stderr.write("ERROR: nepodarilo se importovat vsechny potrebne knihovny\n")
+	exit(1)
 
 
 # napoveda
