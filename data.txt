@@ -1,0 +1,231 @@
+REGISTER sip:cesnet.cz SIP/2.0
+Via: SIP/2.0/UDP 147.229.14.146;rport;branch=z9hG4bK93e50e920000000b49104eb30000633800000001
+Content-Length: 0
+Contact: <sip:matousp@147.229.14.146:5060>
+Call-ID: A426EFAA-717B-456B-8AF4-490B52EDA028@147.229.14.146
+CSeq: 1 REGISTER
+From: <sip:matousp@cesnet.cz>;tag=2006015627994
+Max-Forwards: 70
+To: <sip:matousp@cesnet.cz>
+User-Agent: SJphone/1.60.289a (SJ Labs)
+
+
+SIP/2.0 401 Unauthorized
+Via: SIP/2.0/UDP 147.229.14.146;rport=5060;branch=z9hG4bK93e50e920000000b49104eb30000633800000001
+Call-ID: A426EFAA-717B-456B-8AF4-490B52EDA028@147.229.14.146
+CSeq: 1 REGISTER
+From: <sip:matousp@cesnet.cz>;tag=2006015627994
+To: <sip:matousp@cesnet.cz>;tag=c10ed4fff3e6fb17efd0bfbdcce87ce2.862e
+WWW-Authenticate: Digest realm="cesnet.cz", nonce="49104fdf4c7b45557a94260f14cf17b4bdcad064"
+Server: Sip EXpress router (0.9.6 (i386/linux))
+Content-Length: 0
+Warning: 392 195.113.144.245:5060 "Noisy feedback tells:  pid=26443 req_src_ip=147.229.14.146 req_src_port=5060 in_uri=sip:cesnet.cz out_uri=sip:cesnet.cz via_cnt==1"
+
+
+REGISTER sip:cesnet.cz SIP/2.0
+Via: SIP/2.0/UDP 147.229.14.146;rport;branch=z9hG4bK93e50e920000000b49104eb300001aee00000003
+Content-Length: 0
+Contact: <sip:matousp@147.229.14.146:5060>
+Call-ID: A426EFAA-717B-456B-8AF4-490B52EDA028@147.229.14.146
+CSeq: 2 REGISTER
+From: <sip:matousp@cesnet.cz>;tag=200602032163
+Max-Forwards: 70
+To: <sip:matousp@cesnet.cz>
+User-Agent: SJphone/1.60.289a (SJ Labs)
+Authorization: Digest username="matousp",realm="cesnet.cz",nonce="49104fdf4c7b45557a94260f14cf17b4bdcad064",uri="sip:cesnet.cz",response="f61c21327af3c75c9047c0faec762f88"
+
+
+SIP/2.0 200 OK
+Via: SIP/2.0/UDP 147.229.14.146;rport=5060;branch=z9hG4bK93e50e920000000b49104eb300001aee00000003
+Call-ID: A426EFAA-717B-456B-8AF4-490B52EDA028@147.229.14.146
+CSeq: 2 REGISTER
+From: <sip:matousp@cesnet.cz>;tag=200602032163
+To: <sip:matousp@cesnet.cz>;tag=c10ed4fff3e6fb17efd0bfbdcce87ce2.e5b2
+Contact: <sip:matousp@147.229.14.146:5060>;expires=600
+Server: Sip EXpress router (0.9.6 (i386/linux))
+Content-Length: 0
+Warning: 392 195.113.144.245:5060 "Noisy feedback tells:  pid=26436 req_src_ip=147.229.14.146 req_src_port=5060 in_uri=sip:cesnet.cz out_uri=sip:cesnet.cz via_cnt==1"
+
+
+INVITE sip:541141118@cesnet.cz SIP/2.0
+Via: SIP/2.0/UDP 147.229.14.146;rport;branch=z9hG4bK93e50e920000001949104ebd0000447f00000005
+Content-Length: 342
+Contact: <sip:matousp@147.229.14.146:5060>
+Call-ID: D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146
+Content-Type: application/sdp
+CSeq: 1 INVITE
+From: "Petr Matousek"<sip:matousp@cesnet.cz>;tag=2007034328740
+Max-Forwards: 70
+To: <sip:541141118@cesnet.cz>
+User-Agent: SJphone/1.60.289a (SJ Labs)
+
+v=0
+o=- 3434794301 3434794301 IN IP4 147.229.14.146
+s=SJphone
+c=IN IP4 147.229.14.146
+t=0 0
+a=direction:passive
+m=audio 49152 RTP/AVP 3 97 98 8 0 101
+a=rtpmap:3 GSM/8000
+a=rtpmap:97 iLBC/8000
+a=rtpmap:98 iLBC/8000
+a=fmtp:98 mode=20
+a=rtpmap:8 PCMA/8000
+a=rtpmap:0 PCMU/8000
+a=rtpmap:101 telephone-event/8000
+a=fmtp:101 0-11,16
+
+skacu do INVITE
+SIP/2.0 407 Proxy Authentication Required
+Via: SIP/2.0/UDP 147.229.14.146;rport=5060;branch=z9hG4bK93e50e920000001949104ebd0000447f00000005
+Call-ID: D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146
+CSeq: 1 INVITE
+From: "Petr Matousek"<sip:matousp@cesnet.cz>;tag=2007034328740
+To: <sip:541141118@cesnet.cz>;tag=c10ed4fff3e6fb17efd0bfbdcce87ce2.38c9
+Proxy-Authenticate: Digest realm="cesnet.cz", nonce="49104fea06fd9bb8fe16829e15760ab7978c7461"
+Server: Sip EXpress router (0.9.6 (i386/linux))
+Content-Length: 0
+Warning: 392 195.113.144.245:5060 "Noisy feedback tells:  pid=26442 req_src_ip=147.229.14.146 req_src_port=5060 in_uri=sip:541141118@cesnet.cz out_uri=sip:541141118@cesnet.cz via_cnt==1"
+
+
+ACK sip:541141118@cesnet.cz SIP/2.0
+Via: SIP/2.0/UDP 147.229.14.146;rport;branch=z9hG4bK93e50e920000001949104ebd0000447f00000005
+Content-Length: 0
+Call-ID: D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146
+CSeq: 1 ACK
+From: "Petr Matousek"<sip:matousp@cesnet.cz>;tag=2007034328740
+Max-Forwards: 70
+To: <sip:541141118@cesnet.cz>;tag=c10ed4fff3e6fb17efd0bfbdcce87ce2.38c9
+User-Agent: SJphone/1.60.289a (SJ Labs)
+
+
+INVITE sip:541141118@cesnet.cz SIP/2.0
+Via: SIP/2.0/UDP 147.229.14.146;rport;branch=z9hG4bK93e50e920000001949104ebe0000609800000006
+Content-Length: 342
+Contact: <sip:matousp@147.229.14.146:5060>
+Call-ID: D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146
+Content-Type: application/sdp
+CSeq: 2 INVITE
+From: "Petr Matousek"<sip:matousp@cesnet.cz>;tag=2007034328740
+Max-Forwards: 70
+To: <sip:541141118@cesnet.cz>
+User-Agent: SJphone/1.60.289a (SJ Labs)
+Proxy-Authorization: Digest username="matousp",realm="cesnet.cz",nonce="49104fea06fd9bb8fe16829e15760ab7978c7461",uri="sip:541141118@cesnet.cz",response="b84d7623b5c9d2f15670e175082a6ada"
+
+v=0
+o=- 3434794301 3434794301 IN IP4 147.229.14.146
+s=SJphone
+c=IN IP4 147.229.14.146
+t=0 0
+a=direction:passive
+m=audio 49152 RTP/AVP 3 97 98 8 0 101
+a=rtpmap:3 GSM/8000
+a=rtpmap:97 iLBC/8000
+a=rtpmap:98 iLBC/8000
+a=fmtp:98 mode=20
+a=rtpmap:8 PCMA/8000
+a=rtpmap:0 PCMU/8000
+a=rtpmap:101 telephone-event/8000
+a=fmtp:101 0-11,16
+
+skacu do INVITE
+SIP/2.0 100 trying -- your call is important to us
+Via: SIP/2.0/UDP 147.229.14.146;rport=5060;branch=z9hG4bK93e50e920000001949104ebe0000609800000006
+Call-ID: D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146
+CSeq: 2 INVITE
+From: "Petr Matousek"<sip:matousp@cesnet.cz>;tag=2007034328740
+To: <sip:541141118@cesnet.cz>
+Server: Sip EXpress router (0.9.6 (i386/linux))
+Content-Length: 0
+Warning: 392 195.113.144.245:5060 "Noisy feedback tells:  pid=26436 req_src_ip=147.229.14.146 req_src_port=5060 in_uri=sip:541141118@cesnet.cz out_uri=sip:541141118@147.229.252.55:5060 via_cnt==1"
+
+
+SIP/2.0 183 Session Progress
+Via: SIP/2.0/UDP 147.229.14.146;rport=5060;branch=z9hG4bK93e50e920000001949104ebe0000609800000006
+From: "Petr Matousek"<sip:matousp@cesnet.cz>;tag=2007034328740
+To: <sip:541141118@cesnet.cz>;tag=4B711D13-21D1
+Date: Wed, 05 Nov 2008 02:02:14 GMT
+Call-ID: D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146
+Server: Cisco-SIPGateway/IOS-12.x
+CSeq: 2 INVITE
+Allow-Events: telephone-event
+Contact: <sip:541141118@147.229.252.55:5060>
+Record-Route: <sip:195.113.144.245;ftag=2007034328740;lr=on>
+Content-Disposition: session;handling=required
+Content-Type: application/sdp
+Content-Length: 185
+
+v=0
+o=CiscoSystemsSIP-GW-UserAgent 2516 3633 IN IP4 147.229.252.55
+s=SIP Call
+c=IN IP4 147.229.252.55
+t=0 0
+m=audio 16758 RTP/AVP 8
+c=IN IP4 147.229.252.55
+a=rtpmap:8 PCMA/8000
+
+SIP/2.0 200 OK
+Via: SIP/2.0/UDP 147.229.14.146;rport=5060;branch=z9hG4bK93e50e920000001949104ebe0000609800000006
+From: "Petr Matousek"<sip:matousp@cesnet.cz>;tag=2007034328740
+To: <sip:541141118@cesnet.cz>;tag=4B711D13-21D1
+Date: Wed, 05 Nov 2008 02:02:14 GMT
+Call-ID: D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146
+Server: Cisco-SIPGateway/IOS-12.x
+CSeq: 2 INVITE
+Allow: INVITE, OPTIONS, BYE, CANCEL, ACK, PRACK, COMET, REFER, SUBSCRIBE, NOTIFY, INFO
+Allow-Events: telephone-event
+Contact: <sip:541141118@147.229.252.55:5060>
+Record-Route: <sip:195.113.144.245;ftag=2007034328740;lr=on>
+Content-Type: application/sdp
+Content-Length: 185
+
+v=0
+o=CiscoSystemsSIP-GW-UserAgent 2516 3633 IN IP4 147.229.252.55
+s=SIP Call
+c=IN IP4 147.229.252.55
+t=0 0
+m=audio 16758 RTP/AVP 8
+c=IN IP4 147.229.252.55
+a=rtpmap:8 PCMA/8000
+
+ACK sip:195.113.144.245;ftag=2007034328740 SIP/2.0
+Via: SIP/2.0/UDP 147.229.14.146;rport;branch=z9hG4bK93e50e920000001949104ec7000030620000000a
+Content-Length: 0
+Call-ID: D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146
+CSeq: 2 ACK
+From: "Petr Matousek"<sip:matousp@cesnet.cz>;tag=2007034328740
+Max-Forwards: 70
+Route: <sip:541141118@147.229.252.55:5060>
+To: <sip:541141118@cesnet.cz>;tag=4B711D13-21D1
+User-Agent: SJphone/1.60.289a (SJ Labs)
+
+
+RTP 1203 147.229.14.146 147.229.252.55
+BYE sip:matousp@147.229.14.146:5060 SIP/2.0
+Record-Route: <sip:195.113.144.245;ftag=4B711D13-21D1;lr=on>
+Via: SIP/2.0/UDP 195.113.144.245;branch=z9hG4bKd3c7.0d6b8d23.0
+Via: SIP/2.0/UDP  147.229.252.55:5060
+From: <sip:541141118@cesnet.cz>;tag=4B711D13-21D1
+To: "Petr Matousek"<sip:matousp@cesnet.cz>;tag=2007034328740
+Date: Wed, 05 Nov 2008 02:02:24 GMT
+Call-ID: D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146
+User-Agent: Cisco-SIPGateway/IOS-12.x
+Max-Forwards: 5
+Timestamp: 1225850683
+CSeq: 101 BYE
+Content-Length: 0
+P-hint: rr-enforced
+
+
+skacu do BYE
+SIP/2.0 200 OK
+Via: SIP/2.0/UDP 195.113.144.245;branch=z9hG4bKd3c7.0d6b8d23.0,SIP/2.0/UDP 147.229.252.55:5060
+Content-Length: 0
+Call-ID: D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146
+CSeq: 101 BYE
+From: <sip:541141118@cesnet.cz>;tag=4B711D13-21D1
+Server: SJphone/1.60.289a (SJ Labs)
+To: "Petr Matousek"<sip:matousp@cesnet.cz>;tag=2007034328740
+
+
+{'BYE': {'udp': '195.113.144.245', 'from': '<sip:541141118@cesnet.cz>', 'destinationPort': 5060, 'timestamp': 1225805650.687679, 'destination': '147.229.14.146', 'protocol': 17, 'source': '195.113.144.245', 'branch': 'z9hG4bKd3c7.0d6b8d23.0', 'sourcePort': 5060, 'call-id': 'D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146', 'bye': 'matousp@147.229.14.146:5060'}, 'REGISTER': {'udp': '147.229.14.146', 'destination': '195.113.144.245', 'from': '<sip:matousp@cesnet.cz>', 'destinationPort': 5060, 'source': '147.229.14.146', 'timestamp': 1225805491.659974, 'register': 'cesnet.cz', 'uri': 'sip:cesnet.cz', 'protocol': 17, 'to': '<sip:matousp@cesnet.cz>', 'contact': '<sip:matousp@147.229.14.146:5060>', 'branch': 'z9hG4bK93e50e920000000b49104eb300001aee00000003', 'sourcePort': 5060, 'call-id': 'A426EFAA-717B-456B-8AF4-490B52EDA028@147.229.14.146'}, 'INVITE': {'udp': '147.229.14.146', 'from': '"Petr Matousek"<sip:matousp@cesnet.cz>', 'invite': '541141118@cesnet.cz', 'source': '147.229.14.146', 'destination': '195.113.144.245', 'uri': 'sip:541141118@cesnet.cz', 'protocol': 17, 'timestamp_answer': 1225805502.024442, 'to': '<sip:541141118@cesnet.cz>', 'timestamp_start': 1225805502.018064, 'contact': '<sip:matousp@147.229.14.146:5060>', 'branch': 'z9hG4bK93e50e920000001949104ebe0000609800000006', 'sourcePort': 5060, 'call-id': 'D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146', 'destinationPort': 5060}}
