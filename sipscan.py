@@ -11,6 +11,8 @@ try:
 	import argparse
 	import fileinput
 	import types
+	import datetime
+	from time import gmtime, strftime
 except:
 	sys.stderr.write("ERROR: nepodarilo se importovat vsechny potrebne knihovny\n")
 	exit(1)
@@ -225,7 +227,6 @@ def filter2 (file, port=5060, bymsg=1):
 
 	# navratove pole
 	retlist = []
-	pom=1
 
 	# prochazim paket po paketu
 	#for pkt in pkts:
@@ -242,6 +243,7 @@ def filter2 (file, port=5060, bymsg=1):
 		 	load = repr((pkts[index])[Raw].load)
 
 		 	# projit zpravy po zprave
+		 	pom=1
 		 	for message in messages:
 
 		 		# orezani od apostrofu
@@ -254,6 +256,10 @@ def filter2 (file, port=5060, bymsg=1):
 		 			retlist.append((pkts[index])) # retlist.append(load)
 		 			pom=0
 		 			break # nactu dalsi paket
+
+		 	# pokud jiz nasel zpracvu v paketu tak se o RTP nejedna
+		 	if pom==0: 
+		 		continue
 
 		 	# pokud na invite prislo ACK
 		 	if pktSearch(pkts[index-1],"ACK") and pom==1:
@@ -288,6 +294,13 @@ def getPktType (pkt):
 		return False
 	else:
 		return False
+
+
+# prevod casu
+def getTimeFromTStamp (timestamp):
+	t=datetime.datetime.fromtimestamp(timestamp)
+	t.strftime("%Y")
+	return t
 
 # vyparsovani navratoveho kodu z paketu
 def getAnswer(pkt,mode=1):
