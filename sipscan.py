@@ -148,14 +148,13 @@ def checkProtocolAndPort (pkt,protocols,port):
 
 	# check
 	for protocol in protocols: 												 # prochazim filtrovane protokoly
-		if protocol in pkt:													 # zjistuju zdali je dany paket daneho protokolu
+		if pkt.haslayer(protocol):											 # zjistuju zdali je dany paket daneho protokolu
 			# jeste treba zjistit, jestli tam ma byt and										 
 			if pkt[protocol].sport in ports or pkt[protocol].dport in ports: # zjistuju zdali je dany paket daneho protokolu
 				return True
 			else:
 				return False
-		else:
-			False
+	return False
 
 # vyparsovani vsech paketu ze SIP zprava z paketuu pcap souboru
 def filter2 (file, port=5060, bymsg=1):
@@ -177,7 +176,7 @@ def filter2 (file, port=5060, bymsg=1):
 	for pkt in pkts:
 		# filtr, ktery vyhodi jine pakate nez na povolenych protokolech a portech
 		if not checkProtocolAndPort(pkt,protocols,port):
-			#continue
+			continue
 			pass
 		
 		# samotna zprava paketu se nahraje do pole
