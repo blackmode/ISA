@@ -146,11 +146,12 @@ def checkProtocolAndPort (pkt,protocols,port):
 	else:
 		error("spatny port",1)
 
-	# check
-	for protocol in protocols: 												 # prochazim filtrovane protokoly
-		if pkt.haslayer(protocol):											 # zjistuju zdali je dany paket daneho protokolu
-			# jeste treba zjistit, jestli tam ma byt and										 
-			if pkt[protocol].sport in ports or pkt[protocol].dport in ports: # zjistuju zdali je dany paket daneho protokolu
+	# prochazim filtrovane protokoly
+	for protocol in protocols: 	
+		# zjistuju zdali je dany paket daneho protokolu											 
+		if pkt.haslayer(protocol):											 
+			# zjistuju zdali je dany paket daneho protokolu # jeste treba zjistit, jestli tam ma byt and										 
+			if pkt[protocol].sport in ports or pkt[protocol].dport in ports: 
 				return True
 			else:
 				return False
@@ -201,7 +202,7 @@ def getPktType (pkt):
 		# nacteni obsahu paketu
 		load = repr(pkt[Raw].load)
 
-		# ODSTRRANENI \'
+		# ODSTRRANENI \'   # moznost c.2: pkt = load[1:-1]
 		pkt = load.replace("'","") 
 
 		# typy zprav
@@ -282,9 +283,9 @@ def executePkts(pkts):
 	# zpracovani hovoru
 	for index in range (len(pkts)):
 		if pkts[index]:
-			print pkts[index].show()
+			#print pkts[index].show()
 			#print index
-			#print pkts[index].load
+			print pkts[index].load
 
 			if pktSearch(pkts[index],"REGISTER"):
 				#print "skacu do REGISTER"
