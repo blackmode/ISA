@@ -3,7 +3,7 @@ ISA
 
 POSTUP VYTVOŘENÍ REPA V KOMPLU:
 
-1.) $ git init
+1.) $ git init    (ve složce kde chcu)
 
 2.) $ nano .git/config a pridat tam:
 
