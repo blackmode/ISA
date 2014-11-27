@@ -131,8 +131,20 @@ def pktParser(pkt):
 	if pkt.haslayer(UDP):
 		# zakladni parsovani se scapy
 		invitePacked["sourcePort"]		= pkt[UDP].sport
-		invitePacked["destinationPort"] = pkt[UDP].dport	
+		invitePacked["destinationPort"] = pkt[UDP].dport
 
+	# zpracovani dat  z TCP vrstvy
+	elif pkt.haslayer(TCP):
+		# zakladni parsovani se scapy
+		invitePacked["sourcePort"]		= pkt[TCP].sport
+		invitePacked["destinationPort"] = pkt[TCP].dport
+
+	# zpracovani dat  z SCTP vrstvy
+	elif pkt.haslayer(SCTP):
+		# zakladni parsovani se scapy
+		invitePacked["sourcePort"]		= pkt[SCTP].sport
+		invitePacked["destinationPort"] = pkt[SCTP].dport
+		
 	#navrat
 	return invitePacked
 
