@@ -222,7 +222,7 @@ def getPktType (pkt):
 		return False
 
 # vyparsovani navratoveho kodu z paketu
-def getAnswer(pkt):
+def getAnswer(pkt,mode=1):
 	if pkt.haslayer(Raw):
 		# nacteni obsahu paketu
 		load = repr(pkt[Raw].load)
@@ -239,7 +239,10 @@ def getAnswer(pkt):
 			match_int = re.search(r"(?<=\s)[0-9]{3,3}", match.group(0))
 			if match_int is not None:
 				num_of_answer = match_int.group(0)
-				return int(num_of_answer[0:1]) ## vracim prvni cislo chyby
+				if mode==1:
+					return int(num_of_answer[0:1]) ## vracim prvni cislo chyby
+				else:
+					return int(num_of_answer[0:3]) ## vracim celou chybu
 			else:
 				return False
 	else:
