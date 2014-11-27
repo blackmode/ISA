@@ -298,9 +298,9 @@ def getPktType (pkt):
 
 # prevod casu
 def getTimeFromTStamp (timestamp):
-	t=datetime.datetime.fromtimestamp(timestamp)
-	t.strftime("%Y")
-	return t
+	t=datetime.datetime.fromtimestamp(round(int(timestamp)))
+	time=t.strftime("%Y-%m-%dT%H:%M:%S")
+	return time
 
 # vyparsovani navratoveho kodu z paketu
 def getAnswer(pkt,mode=1):
@@ -352,17 +352,36 @@ def pktReqSearch(pkts,req):
 			return True
 	return False
 
+# pridani slovniku1 do slovniku2  pod klicem key
+def addDictToDict(key,dic1,dic2):
+	# jestlize seznam pod danym klicem neni obsazen v seznamu
+	if key not in dic2.keys():
+		# tak jej muzu pridat
+		dic2[key]=dic1
+	else:
+		newKey=1
+		while(1):
+			if str(key+str(newKey)) not in dic2.keys():
+				dic2[str(key+str(newKey))]=dic1
+				break
+			else:
+				newKey=newKey+1
+	return dic2
+
+
 # vyhodnoceni Paketu
 def executePkts(pkts):
 	# navratove pole
 	retlist = []
 	tmplist = {}
 	registers = {}
+
 	newret  = []
 	data = {}
 	#data[el][prefix+el+sufix]=pk
 	#data[el]={prefix+el+sufix:pk}
-	zacatek_hovoru = 0 # prvni invite
+	zacatek_hovoru = 0  # prvni invite
+	odpoved_na_hovor = 0 # prvni invite
 
 	# zpracovani hovoru
 	for index in range (len(pkts)):
@@ -393,7 +412,7 @@ def executePkts(pkts):
 						#print (index,"uspech, registrace sepovedla, parsuju data")
 						tmplist = pktParser(pkts[index])
 						tmplist["timestamp"] = pkts[index].time
-						registers["REGISTER_"+str(index)] = tmplist 
+						data=addDictToDict("REGISTER",tmplist,data)
 						break
 
 				# jump to index+offset => index je paket ktrey proveruji + preskocim 
@@ -417,8 +436,9 @@ def executePkts(pkts):
 					if pktSearch(pkts[index+offset],"CANCEL"):
 						# ZPRAOVANI tj naparsovani dat o hovoru
 						tmplist = pktParser(pkts[index])
-						tmplist["timestamp"] = pkts[index].time
-						retlist.append(tmplist)
+						tmplist["timestamp_start"] = zacatek_hovoru
+						tmplist["timestamp_answer"] = pkts[index].time
+						data=addDictToDict("INVITE",tmplist,data)
 						break
 
 
@@ -435,8 +455,9 @@ def executePkts(pkts):
 					# pokud registrace probehla uspesne, zpracuju data o registraci
 					if getAnswer(pkts[index+offset]) == 2:
 						tmplist = pktParser(pkts[index])
-						tmplist["timestamp"] = pkts[index].time
-						retlist.append(tmplist)
+						tmplist["timestamp_start"] = zacatek_hovoru
+						tmplist["timestamp_answer"] = pkts[index].time
+						data=addDictToDict("INVITE",tmplist,data)
 						break
 
 					# overim zdali, ma INVITE nejaky dalsi zadosti, pokud ne budu to povazovat za ukonecnej hovor
@@ -464,18 +485,11 @@ def executePkts(pkts):
 				if getAnswer(pkts[index+1])==1 or getAnswer(pkts[index+1])==2:
 					tmplist = pktParser(pkts[index])
 					tmplist["timestamp"] = pkts[index].time
-					retlist.append(tmplist)
+					data=addDictToDict("BYE",tmplist,data)
 				else:
 					continue
-	#newret["REGISTERS"] = registers
-	#newret["CALLS"] = retlist
 
-
-	data["REGISTERS"] = {"REGISTERS":registers}
-	data["CALLS"] = {"CALLS":retlist}
-	#newret.append(registers)
-	#newret.append(retlist)
-	return registers
+	return data
 
 
 # sniffovaci funkce pro odposlech rozhrani
