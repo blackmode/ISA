@@ -104,6 +104,8 @@ def pktParser(pkt):
 		contact    = re.search(r"(?<=Contact:\s)([\"\'\w\s]+)?<[^>]+>", paket)
 		callid     = re.search(r"(?<=Call-ID:\s)[\"\'\w\s\-]+@[\"\'\w\s\-\.]+(?=[\\\s])", paket)
 		branch     = re.search(r"(?<=branch=)\s*[\"\'\w\s\-\.]+(?=[\\\s])", paket)
+		realm      = re.search(r"(?<=realm=)\s*[^\"\']+(?=[\"\'])", paket)
+		username   = re.search(r"(?<=username=)\s*[^\"\']+(?=[\"\'])", paket)
 
 		# nahazeni do slovniku
 		if register is not None: invitePacked["register"] 	= register.group(0)
@@ -119,6 +121,8 @@ def pktParser(pkt):
 		if in_uri 	is not None: invitePacked["in_uri"]		= in_uri.group(0)
 		if out_uri 	is not None: invitePacked["out_uri"]	= out_uri.group(0)
 		if branch 	is not None: invitePacked["branch"]		= branch.group(0)
+		if realm 	is not None: invitePacked["realm"]		= realm.group(0)
+		if username is not None: invitePacked["username"]	= username.group(0)
 
 	# zpracovani dat  z IP vrstvy
 	if pkt.haslayer(IP):
@@ -216,33 +220,47 @@ def filter2 (file, port=5060, bymsg=1):
 		error("Soubor neexistuje, nebo neni citelny",2)
 
 	# jake zpravy a protokoly filtrovat
-	messages = ["SIP","INVITE","ACK","BYE","REGISTER","CANCEL","REFER","OPTIONS","INFO"] 
+	messages = ["SIP","INVITE","ACK","BYE","REGISTER","CANCEL"] #,"REFER","OPTIONS","INFO"
 	protocols = [TCP,UDP,SCTP] # nad jakejma protokolama vetsinou bezi SIP
 
 	# navratove pole
 	retlist = []
-	
+	pom=1
+
 	# prochazim paket po paketu
-	for pkt in pkts:
+	#for pkt in pkts:
+	for index in range (len(pkts)):
 		# filtr, ktery vyhodi jine pakate nez na povolenych protokolech a portech
 		#if not checkProtocolAndPort(pkt,protocols,port,2):
 			#continue
 			#pass
 		
 		# samotna zprava paketu se nahraje do pole
-		if pkt.haslayer(Raw):
+		if (pkts[index]).haslayer(Raw):
+
 			# nacteni obsahu paketu
-		 	load = repr(pkt[Raw].load)
+		 	load = repr((pkts[index])[Raw].load)
+
 		 	# projit zpravy po zprave
 		 	for message in messages:
+
 		 		# orezani od apostrofu
 		 		load = load.replace("'","")
+
 		 		#zjisteni zdali se jedna o paket sip 
 		 		if re.match(r'^'+message,load):
+
 		 			# v pripade ze ani, pridam ho do vysledneho pole
-		 			retlist.append(pkt) # retlist.append(load)
+		 			retlist.append((pkts[index])) # retlist.append(load)
+		 			pom=0
 		 			break # nactu dalsi paket
-		#retlist.append(pkt)
+
+		 	# pokud na invite prislo ACK
+		 	if pktSearch(pkts[index-1],"ACK") and pom==1:
+		 		pkts[index].load = "RTP "+str(index)+" "+str((pkts[index])[IP].src)+" "+str((pkts[index])[IP].dst)
+		 		retlist.append(pkts[index]) # zrejme se jedna o RTP paket
+
+		#retlist.append((pkts[index]))
 	return retlist
 
 
@@ -325,8 +343,8 @@ def pktReqSearch(pkts,req):
 def executePkts(pkts):
 	# navratove pole
 	retlist = []
-	tmplist = []
-	registers = []
+	tmplist = {}
+	registers = {}
 	newret  = []
 	data = {}
 	#data[el][prefix+el+sufix]=pk
@@ -338,8 +356,8 @@ def executePkts(pkts):
 		if pkts[index]:
 			#print pkts[index].show()
 			#print index
-			#print pkts[index].load
-			print pktSdpParser(pkts[index])
+			print pkts[index].load
+			#print pktSdpParser(pkts[index])
 
 			if pktSearch(pkts[index],"REGISTER"):
 				#print "skacu do REGISTER"
@@ -362,7 +380,7 @@ def executePkts(pkts):
 						#print (index,"uspech, registrace sepovedla, parsuju data")
 						tmplist = pktParser(pkts[index])
 						tmplist["timestamp"] = pkts[index].time
-						registers.append(tmplist)
+						registers["REGISTER_"+str(index)] = tmplist 
 						break
 
 				# jump to index+offset => index je paket ktrey proveruji + preskocim 
