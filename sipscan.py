@@ -137,7 +137,7 @@ def pktParser(pkt):
 	return invitePacked
 
 # overeni protokoli a portu
-def checkProtocolAndPort (pkt,protocols,port):
+def checkProtocolAndPort (pkt,protocols,port,mode=1):
 	# jake porty filtrovat
 	if type(port) is list:
 		ports = port
@@ -148,13 +148,18 @@ def checkProtocolAndPort (pkt,protocols,port):
 
 	# prochazim filtrovane protokoly
 	for protocol in protocols: 	
-		# zjistuju zdali je dany paket daneho protokolu											 
-		if pkt.haslayer(protocol):											 
-			# zjistuju zdali je dany paket daneho protokolu # jeste treba zjistit, jestli tam ma byt and										 
-			if pkt[protocol].sport in ports or pkt[protocol].dport in ports: 
+		if mode==1:
+			# zjistuju zdali je dany paket daneho protokolu											 
+			if pkt.haslayer(protocol):											 
+				# zjistuju zdali je dany paket daneho protokolu # jeste treba zjistit, jestli tam ma byt and										 
+				if pkt[protocol].sport in ports or pkt[protocol].dport in ports: 
+					return True
+				else:
+					return False
+		else:
+			# zjistuju jen zdali je dany paket daneho protokolu	
+			if pkt.haslayer(protocol):	
 				return True
-			else:
-				return False
 	return False
 
 # vyparsovani vsech paketu ze SIP zprava z paketuu pcap souboru
@@ -176,12 +181,12 @@ def filter2 (file, port=5060, bymsg=1):
 	# prochazim paket po paketu
 	for pkt in pkts:
 		# filtr, ktery vyhodi jine pakate nez na povolenych protokolech a portech
-		if not checkProtocolAndPort(pkt,protocols,port):
+		if not checkProtocolAndPort(pkt,protocols,port,2):
 			continue
 			pass
 		
 		# samotna zprava paketu se nahraje do pole
-		if pkt.haslayer(Raw):
+		if False:#pkt.haslayer(Raw):
 			# nacteni obsahu paketu
 		 	load = repr(pkt[Raw].load)
 		 	# projit zpravy po zprave
@@ -193,6 +198,7 @@ def filter2 (file, port=5060, bymsg=1):
 		 			# v pripade ze ani, pridam ho do vysledneho pole
 		 			retlist.append(pkt) # retlist.append(load)
 		 			break # nactu dalsi paket
+		retlist.append(pkt)
 	return retlist
 
 
@@ -375,7 +381,7 @@ def executePkts(pkts):
 
 # OTAZKA K ZAMYSLENI, JAK BUDE VYPADAT VYSTUPNI XML, kdyz prijde CANCEL??? Nebo komunikace INVITE   skonci 4XX 
 		# a nebude navazovat dal
-
+# v pripade ze hovor bude mit vice media descrioption, vipisu do xml vice <RTP> </RTP>
 
 			if pktSearch(pkts[index],"BYE"):
 				print "skacu do BYE"
@@ -421,8 +427,10 @@ def test():
 
 def callf():
 	f=filter2 ('sip.pcap') # pakety/prichozi_z_mobilu_odmitnuty
-	tmp = executePkts(f)
-	print tmp
+	#tmp = executePkts(f)
+	#print tmp
+	for p in f:
+		print p.show()
 	#registers = tmp["REGISTERS"]
 	#calls = tmp["CALLS"]
 	#for cal in f:
