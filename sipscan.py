@@ -144,9 +144,41 @@ def pktParser(pkt):
 		# zakladni parsovani se scapy
 		invitePacked["sourcePort"]		= pkt[SCTP].sport
 		invitePacked["destinationPort"] = pkt[SCTP].dport
-		
+
 	#navrat
 	return invitePacked
+
+
+def pktSdpParser(pkt, mode=1):
+	# init
+	sdp = {}
+	ret = []
+	ret2 = ""
+
+	# zpracovani SIP
+	if pkt.haslayer(Raw):
+
+		# OREZANI \' A nacteni obsahu paketu
+		load = repr(pkt[Raw].load)[1:-1] 
+
+		# parsovani
+		media		=	re.findall(r'(?<=a=)\s*[^\\]+(?=\\)',load)
+		relation	=	re.search(r'(?<=m=)\s*[^\\]+(?=\\)',load)
+
+		# zpracovani
+		if media is not None:
+			ret = media
+
+		if relation is not None:
+			ret2 = relation.group(0)
+
+		# co vratit
+		if mode==1:
+			return ret
+		else:
+			return ret2
+
+
 
 # overeni protokoli a portu
 def checkProtocolAndPort (pkt,protocols,port,mode=1):
@@ -193,12 +225,12 @@ def filter2 (file, port=5060, bymsg=1):
 	# prochazim paket po paketu
 	for pkt in pkts:
 		# filtr, ktery vyhodi jine pakate nez na povolenych protokolech a portech
-		if not checkProtocolAndPort(pkt,protocols,port,2):
-			continue
-			pass
+		#if not checkProtocolAndPort(pkt,protocols,port,2):
+			#continue
+			#pass
 		
 		# samotna zprava paketu se nahraje do pole
-		if False:#pkt.haslayer(Raw):
+		if pkt.haslayer(Raw):
 			# nacteni obsahu paketu
 		 	load = repr(pkt[Raw].load)
 		 	# projit zpravy po zprave
@@ -210,7 +242,7 @@ def filter2 (file, port=5060, bymsg=1):
 		 			# v pripade ze ani, pridam ho do vysledneho pole
 		 			retlist.append(pkt) # retlist.append(load)
 		 			break # nactu dalsi paket
-		retlist.append(pkt)
+		#retlist.append(pkt)
 	return retlist
 
 
@@ -306,7 +338,8 @@ def executePkts(pkts):
 		if pkts[index]:
 			#print pkts[index].show()
 			#print index
-			print pkts[index].load
+			#print pkts[index].load
+			print pktSdpParser(pkts[index])
 
 			if pktSearch(pkts[index],"REGISTER"):
 				#print "skacu do REGISTER"
@@ -439,10 +472,10 @@ def test():
 
 def callf():
 	f=filter2 ('sip.pcap') # pakety/prichozi_z_mobilu_odmitnuty
-	#tmp = executePkts(f)
-	#print tmp
-	for p in f:
-		print p.show()
+	tmp = executePkts(f)
+	print tmp
+	#for p in f:
+		#print p.show()
 	#registers = tmp["REGISTERS"]
 	#calls = tmp["CALLS"]
 	#for cal in f:
