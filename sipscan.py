@@ -43,9 +43,6 @@ def error(msg,errcode):
 	exit(errcode)
 
 
-#regexp: load\s*=\s*[\'\"][^\'\"]+[\'\"] 
-sys.stdout = open('data.txt', 'w')
-
 
 # vytrovani protokolu
 def filter (file, port):
@@ -509,64 +506,53 @@ def pktsToXML(pkts):
 	return pkts
 
 
-#### TEST FUNCTIONS ############
-def test():
-	pkts = rdpcap('sip.pcap') 
-	for pkt in pkts:
-		print pkt.time
-
-def callf():
-	f=filter2 ('sip.pcap') # pakety/prichozi_z_mobilu_odmitnuty
-	tmp = executePkts(f)
-	print tmp
-	#for p in f:
-		#print p.show()
-	#registers = tmp["REGISTERS"]
-	#calls = tmp["CALLS"]
-	#for cal in f:
-		#print cal
-		#print "\r\n"
-	#for k in f:
-		#print k.time
-		#print k.load
-		#print getAnswer(k)
-		#print ("s:",pktSearch(k,"REGISTER"))
-		#print ("TYP: ",getPktType(k))
-		#print pktParser(k)
-		#print "\r\n"
+# keys into string
+def countOfCols (columns):
+	str_out = ""
+	for key in columns:
+		str_out = str_out+" "+key
+	return str_out
 
 
-callf()
-#f=filter2 ('sip.pcap')
-#for j in f:
-#	print j
-#pkts = rdpcap('sip.pcap') 
-#for pkt in pkts:
-#	if pkt.haslayer(Raw):
-#		 load = repr(pkt[Raw].load)
-#		 print load
+# osetreni kombinaci paramtru apod.
+def argsExecute(args):
+	# pocet parametru
+	for parametr in ["-f","-i","-o","-p","-h","--file","--interface","--output","--port","--help","-fic"]:
+		if len(re.findall(r""+parametr+"(?=\s)", countOfCols (sys.argv)))>1:
+			error("Nelze zadat jeden parametr vicekrat, dukaz: "+countOfCols (sys.argv),10)
+
+	# osetreni napovedy
+	if args.help:
+		if len(sys.argv)!=2:
+			error("Parametr help nesmi byt kombinovan",11)
+
+	# osetreni zdali nedoslo k zadani soucasne 
+	if args.file and args.interface:
+		error("NELZE ZADAT VSTUP JAK Z ROZHRANI TAK ZE SOUBORU, zvolte jen jeden",12)
+
+	# test existence souboru
+	if args.file:
+		if not os.path.isfile(args.file) or not os.access(args.file, os.R_OK):
+			error("zadany soubor nebyl nalezen, nebo neni citelny",13)
+
+	# osetreni povinnosti parametru
+	if not args.file and not args.interface:
+		error("musi byt zadan alespon jeden z dvojice parametru -i IFACE|-f FILE",14)
+
+	# osetreni povinnosti parametru
+	if not args.output:
+		error("parametr pro vystup musi byt zadan!",15)
+
+	# osetreni povinnosti parametru
+	if args.output:
+		if not os.path.isfile(args.output) or not os.access(args.output, os.W_OK):
+			error("zadany soubor pro VYSTUP nebyl nalezen, nebo neni zapisovatelny",16)
 
 
-
-#filtered = (pkt for pkt in pkts if
- #   UDP in pkt and
- #   (pkt[UDP].sport in ports or pkt[UDP].dport in ports))
-
-port = 5060
+#regexp: load\s*=\s*[\'\"][^\'\"]+[\'\"] 
+sys.stdout = open('data.txt', 'w')
 
 
-
-#wrpcap('data.pcap', filtered)
-
-
-
-
-
-
-#ips = set((p[IP].src, p[IP].dst) for p in PcapReader('sip.pcap') if IP in p)
-#IP.payload_guess = []
-
-#print pcap
 
 
 # zpracovani parametru
@@ -577,6 +563,7 @@ arguments.add_argument('--interface','-i',action="store", dest="interface")
 arguments.add_argument('--output','-o', action="store", dest="output")
 arguments.add_argument('--port','-p',    action="store", dest="port")
 arguments.add_argument("--help", "-h", action="store_true", dest="help")
+arguments.add_argument("-fic", action="store", dest="fic")
 
 
 try:
@@ -585,29 +572,41 @@ try:
 except:
 	error("nepovoleny argument",1)
 
-# overeni neplatnych kombinaci s help
+
+# predvolanim parametru se nejprve osetri 
+#argsExecute(args)
+
+
+# help
 if args.help:
-	if len(sys.argv)!=2:
-		error("Parametr help nesmi byt kombinovan",1)
-	else:
-		print(napoveda())
-		exit(0)
+	print(napoveda())
 
-#client = "192.168.10.1"
-#server = "192.168.10.5"
-#client_port = 5061
-#server_port = 5060
-#SIP Payload
-#sip = ("INVITE sip:105@" + server + " SIP/2.0\r\n"
-#"To: <sip:" + server + ":5060>\r\n"
-#"Via: SIP/2.0/UDP localhost:30000\r\n"
-#"From: \x22xtestsip\x22<sip:" + server + ":30000>\r\n"
-#"Call-ID: f9844fbe7dec140ca36500a0c91e6bf5@localhost\r\n"
-#"CSeq: 1 INVITE\r\n"
-#"Max-Forwards: 70\r\n"
-#"Content-Type: application/sdp\r\n"
-#"Content-Length: -1\r\n\r\n")
-#pkt= Ether()/IP(src=client, dst=server)/TCP()/sip
-#wrpcap("sip_pkt.pcap",pkt)
-#send(sip)
+# overeni zdali je zadan port - volitelny, muze a nemusi
+if args.port:
+	port = args.port
+else:
+	port = 5060 
 
+
+
+
+
+
+#### TEST FUNCTIONS ############
+def test():
+	pkts = rdpcap('sip.pcap') 
+	for pkt in pkts:
+		print pkt.time
+
+def callf():
+	f=filter2 ('sip.pcap') # pakety/prichozi_z_mobilu_odmitnuty
+	tmp = executePkts(f)
+	print tmp
+
+
+
+
+callf()
+
+
+exit(0)
