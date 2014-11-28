@@ -76,6 +76,7 @@ def filter (file, port):
 def registerParse(pkt):
 	return True
 
+
 # vyparsovani dulezitych dat z paketu invite
 def pktParser(pkt):
 	# init
@@ -209,6 +210,7 @@ def checkProtocolAndPort (pkt,protocols,port,mode=1):
 				return True
 	return False
 
+
 # vyparsovani vsech paketu ze SIP zprava z paketuu pcap souboru
 def filter2 (file, port=5060, bymsg=1):
 
@@ -299,6 +301,7 @@ def getTimeFromTStamp (timestamp):
 	time=t.strftime("%Y-%m-%dT%H:%M:%S")
 	return time
 
+
 # vyparsovani navratoveho kodu z paketu
 def getAnswer(pkt,mode=1):
 	if pkt.haslayer(Raw):
@@ -326,6 +329,7 @@ def getAnswer(pkt,mode=1):
 	else:
 		return False
 
+
 # overi zdali je v paketu zprava na zacatku
 def pktSearch(pkt,msg):
 	if pkt.haslayer(Raw):
@@ -342,12 +346,14 @@ def pktSearch(pkt,msg):
 	else:
 		return False 
 
+
 # overi zdali se v nasledujicih paketech vyskytuje nejakY SIP REQUEST
 def pktReqSearch(pkts,req):
 	for index in range (len(pkts)):
 		if pktSearch(pkts[index],req):
 			return True
 	return False
+
 
 # pridani slovniku1 do slovniku2  pod klicem key
 def addDictToDict(key,dic1,dic2):
@@ -587,7 +593,8 @@ if args.port:
 else:
 	port = 5060 
 
-
+if args.interface:
+	sniffIfaceAndPort(args.interface,port)
 
 
 
