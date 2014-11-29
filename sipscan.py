@@ -127,7 +127,6 @@ def pktParser(pkt):
 		# zakladni parsovani se scapy
 		invitePacked["source"]		= pkt[IP].src
 		invitePacked["destination"] = pkt[IP].dst	
-		invitePacked["protocol"]	= pkt[IP].proto
 
 	# zpracovani dat  z UDP vrstvy
 	if pkt.haslayer(UDP):
@@ -150,6 +149,7 @@ def pktParser(pkt):
 	#navrat
 	return invitePacked
 
+
 # srovnam dva seznamy a vratim shodne elemnty
 def comp2list(lis1,lis2):
 	new = []
@@ -157,6 +157,7 @@ def comp2list(lis1,lis2):
 		if el in lis2:
 			new.append(el)
 	return new
+
 
 def parseAMCOfSDP(param,mode="a"):
 	ret = {}
@@ -754,3 +755,22 @@ callf()
 
 
 exit(0)
+
+# co jeste udelat?
+# zjistit kolik media description je, tj na kolika se odmluvily a pak je taky vypsat do rtp
+# kodeky mam blbe, v a v INVITE josu moznosti, jaky se muzou zvolit, a v m v SIP 200 jsou ty ktery se maj zvolit
+
+# invite:
+#a=rtpmap:0 PCMU/8000
+#a=rtpmap:8 PCMA/8000
+#a=rtpmap:23 G726-16/8000
+#a=rtpmap:22 G726-24/8000
+#a=rtpmap:2 G726-32/8000
+#a=rtpmap:21 G726-40/8000
+#a=rtpmap:3 GSM/8000
+
+# OK: m=audio 5062 RTP/AVP 0 8 3
+
+# OSETRIT VSECHNY PRIPADY KOMUNIKACE V INVITE
+# ZJISTIT KTERY DATA SE MAJ KAM NACITAT
+# NAPSAT DOKUMENTACI A README!
