@@ -42,14 +42,14 @@ invite byl uspesny, parsuju data
 
 <sipscan>
 	<registration>
-		<registratar ip="195.113.144.245" uri="cesnet.cz" />
-		<user-agent ip="147.229.14.146" uri="<sip:matousp@cesnet.cz>">
+		<registratar ip="195.113.144.245" uri="sip:cesnet.cz" />
+		<user-agent ip="147.229.14.146" uri="matousp@cesnet.cz">
 		<authentication username="matousp" realm="cesnet.cz" uri="sip:cesnet.cz" />
 		<time registration registration="2008-11-04T14:31:31" />
 	</registration>
 	<call>
-		<caller ip="147.229.14.146" uri=""Petr Matousek"<matousp@cesnet.cz>" />
-		<callee ip="195.113.144.245" uri="<541141118@cesnet.cz>" />
+		<caller ip="147.229.14.146" uri="matousp@cesnet.cz" />
+		<callee ip="195.113.144.245" uri="541141118@cesnet.cz" />
 		<time start="2008-11-04T14:31:42" answer="2008-11-04T14:31:51" end="2008-11-04T14:34:10" />
 		<rtp>
 			<caller ip="147.229.14.146" port="49152" />
@@ -59,4 +59,4 @@ invite byl uspesny, parsuju data
 	</call>
 </sipscan>
 
-{'REGISTER': {'username': 'matousp', 'udp': '147.229.14.146', 'destination': '195.113.144.245', 'from': '<sip:matousp@cesnet.cz>', 'source': '147.229.14.146', 'timestamp': 1225805491.66472, 'register': 'cesnet.cz', 'uri': 'sip:cesnet.cz', 'protocol': 17, 'to': '<sip:matousp@cesnet.cz>', 'contact': '<sip:matousp@147.229.14.146:5060>', 'destinationPort': 5060, 'sourcePort': 5060, 'call-id': 'A426EFAA-717B-456B-8AF4-490B52EDA028@147.229.14.146', 'realm': 'cesnet.cz'}, 'INVITE': {'protocol': 17, 'rtp_dst_port': '16758', 'timestamp_answer': 1225805511.817215, 'rtp_dst_ip': '147.229.252.55', 'from': '"Petr Matousek"<sip:matousp@cesnet.cz>', 'rtp_src_ip': '147.229.14.146', 'to': '<sip:541141118@cesnet.cz>', 'destination': '195.113.144.245', 'source': '147.229.14.146', 'call-id': 'D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146', 'username': 'matousp', 'udp': '147.229.14.146', 'invite': '541141118@cesnet.cz', 'payload-type': '8', 'timestamp_start': 1225805502.018064, 'destinationPort': 5060, 'sourcePort': 5060, 'realm': 'cesnet.cz', 'rtp_src_port': '49152', 'name': 'PCMA/8000', 'uri': 'sip:541141118@cesnet.cz', 'contact': '<sip:matousp@147.229.14.146:5060>', 'timestamp_end': 1225805650.687679}}
+{'REGISTER': {'username': 'matousp', 'udp': '147.229.14.146', 'destination': '195.113.144.245', 'from': 'matousp@cesnet.cz', 'source': '147.229.14.146', 'timestamp': 1225805491.66472, 'register': 'cesnet.cz', 'uri': 'sip:cesnet.cz', 'to': 'matousp@cesnet.cz', 'contact': 'matousp@147.229.14.146:5060', 'destinationPort': 5060, 'sourcePort': 5060, 'call-id': 'A426EFAA-717B-456B-8AF4-490B52EDA028@147.229.14.146', 'realm': 'cesnet.cz'}, 'INVITE': {'rtp_dst_ip': '147.229.252.55', 'rtp_dst_port': '16758', 'timestamp_answer': 1225805511.817215, 'from': 'matousp@cesnet.cz', 'rtp_src_ip': '147.229.14.146', 'to': '541141118@cesnet.cz', 'destination': '195.113.144.245', 'source': '147.229.14.146', 'call-id': 'D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146', 'username': 'matousp', 'udp': '147.229.14.146', 'invite': '541141118@cesnet.cz', 'payload-type': '8', 'timestamp_start': 1225805502.018064, 'destinationPort': 5060, 'sourcePort': 5060, 'realm': 'cesnet.cz', 'rtp_src_port': '49152', 'name': 'PCMA/8000', 'uri': 'sip:541141118@cesnet.cz', 'contact': 'matousp@147.229.14.146:5060', 'timestamp_end': 1225805650.687679}}

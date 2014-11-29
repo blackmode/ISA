@@ -72,10 +72,17 @@ def filter (file, port):
 					print pkt.show()
 
 
-# vyparsovani dulezitych dat z paketu register
-def registerParse(pkt):
-	return True
 
+# zisk URI
+def getUri(line):
+	if re.search(r"(?<=\<)[^>]+(?=\>)",line):
+		v = (re.search(r"(?<=\<)[^>]+(?=\>)",line)).group(0)
+		v = v.replace("sip:","")
+		v = v.replace("sips:","")
+
+		return v
+	else: 
+		return line
 
 # vyparsovani dulezitych dat z paketu invite
 def pktParser(pkt):
@@ -112,15 +119,16 @@ def pktParser(pkt):
 		if ack 	 	is not None: invitePacked["ack"] 		= ack.group(0)
 		if bye 		is not None: invitePacked["bye"] 		= bye.group(0)
 		if udp 		is not None: invitePacked["udp"] 		= udp.group(0)
-		if to 		is not None: invitePacked["to"] 		= to.group(0)
-		if fromP 	is not None: invitePacked["from"] 		= fromP.group(0)
-		if contact  is not None: invitePacked["contact"]	= contact.group(0)
+		if to 		is not None: invitePacked["to"] 		= getUri(to.group(0))
+		if fromP 	is not None: invitePacked["from"] 		= getUri(fromP.group(0))
+		if contact  is not None: invitePacked["contact"]	= getUri(contact.group(0))
 		if callid   is not None: invitePacked["call-id"]	= callid.group(0)
-		if uri 		is not None: invitePacked["uri"] 		= uri.group(0)
+		if uri 		is not None: invitePacked["uri"] 		= getUri(uri.group(0))
 		if in_uri 	is not None: invitePacked["in_uri"]		= in_uri.group(0)
 		if out_uri 	is not None: invitePacked["out_uri"]	= out_uri.group(0)
 		if realm 	is not None: invitePacked["realm"]		= realm.group(0)
 		if username is not None: invitePacked["username"]	= username.group(0)
+
 
 	# zpracovani dat  z IP vrstvy
 	if pkt.haslayer(IP):
@@ -157,6 +165,8 @@ def comp2list(lis1,lis2):
 		if el in lis2:
 			new.append(el)
 	return new
+
+
 
 
 def parseAMCOfSDP(param,mode="a"):
@@ -418,7 +428,7 @@ def pktsToXML(data):
 	for key in data.keys():
 		if re.match(r"REGISTER\w*",key):
 			output = output +"\t<registration>\r\n"
-			output = output +"\t\t<registratar ip=\""+data[key]["destination"]+"\" uri=\""+data[key]["uri"].replace("sip:","")+"\" />\r\n"
+			output = output +"\t\t<registratar ip=\""+data[key]["destination"]+"\" uri=\""+data[key]["uri"]+"\" />\r\n"
 			output = output +"\t\t<user-agent ip=\""+data[key]["source"]+"\" uri=\""+data[key]["from"]+"\">\r\n"
 			output = output +"\t\t<authentication username=\""+data[key]["username"]+"\" realm=\""+data[key]["realm"]+"\" uri=\""+data[key]["uri"]+"\" />\r\n"
 			output = output +"\t\t<time registration registration=\""+getTimeFromTStamp(data[key]["timestamp"])+"\" />\r\n"
@@ -427,8 +437,8 @@ def pktsToXML(data):
 
 		if re.match(r"INVITE\w*",key):
 			output = output +"\t<call>\r\n"
-			output = output +"\t\t<caller ip=\""+data[key]["source"]+"\" uri=\""+data[key]["from"].replace("sip:","")+"\" />\r\n"
-			output = output +"\t\t<callee ip=\""+data[key]["destination"]+"\" uri=\""+data[key]["to"].replace("sip:","")+"\" />\r\n"
+			output = output +"\t\t<caller ip=\""+data[key]["source"]+"\" uri=\""+data[key]["from"]+"\" />\r\n"
+			output = output +"\t\t<callee ip=\""+data[key]["destination"]+"\" uri=\""+data[key]["to"]+"\" />\r\n"
 			output = output +"\t\t<time start=\""+getTimeFromTStamp(data[key]["timestamp_start"])+"\" answer=\""+getTimeFromTStamp(data[key]["timestamp_answer"])+"\" end=\""+getTimeFromTStamp(data[key]["timestamp_end"])+"\" />\r\n"
 			output = output +"\t\t<rtp>\r\n"
 			output = output +"\t\t\t<caller ip=\""+data[key]["rtp_src_ip"]+"\" port=\""+data[key]["rtp_src_port"]+"\" />\r\n"
