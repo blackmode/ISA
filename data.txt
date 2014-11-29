@@ -76,6 +76,7 @@ a=rtpmap:101 telephone-event/8000
 a=fmtp:101 0-11,16
 
 skacu do INVITE
+prisla chyba, koncim a vyskakuju z invite zpracovani
 SIP/2.0 407 Proxy Authentication Required
 Via: SIP/2.0/UDP 147.229.14.146;rport=5060;branch=z9hG4bK93e50e920000001949104ebd0000447f00000005
 Call-ID: D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146
@@ -129,6 +130,9 @@ a=rtpmap:101 telephone-event/8000
 a=fmtp:101 0-11,16
 
 skacu do INVITE
+Tryin nebo continue, pokracuju
+Tryin nebo continue, pokracuju
+invite byl uspesny, parsuju data
 SIP/2.0 100 trying -- your call is important to us
 Via: SIP/2.0/UDP 147.229.14.146;rport=5060;branch=z9hG4bK93e50e920000001949104ebe0000609800000006
 Call-ID: D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146
@@ -228,4 +232,4 @@ Server: SJphone/1.60.289a (SJ Labs)
 To: "Petr Matousek"<sip:matousp@cesnet.cz>;tag=2007034328740
 
 
-{'BYE': {'udp': '195.113.144.245', 'from': '<sip:541141118@cesnet.cz>', 'destinationPort': 5060, 'timestamp': 1225805650.687679, 'destination': '147.229.14.146', 'protocol': 17, 'source': '195.113.144.245', 'branch': 'z9hG4bKd3c7.0d6b8d23.0', 'sourcePort': 5060, 'call-id': 'D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146', 'bye': 'matousp@147.229.14.146:5060'}, 'REGISTER': {'udp': '147.229.14.146', 'destination': '195.113.144.245', 'from': '<sip:matousp@cesnet.cz>', 'destinationPort': 5060, 'source': '147.229.14.146', 'timestamp': 1225805491.659974, 'register': 'cesnet.cz', 'uri': 'sip:cesnet.cz', 'protocol': 17, 'to': '<sip:matousp@cesnet.cz>', 'contact': '<sip:matousp@147.229.14.146:5060>', 'branch': 'z9hG4bK93e50e920000000b49104eb300001aee00000003', 'sourcePort': 5060, 'call-id': 'A426EFAA-717B-456B-8AF4-490B52EDA028@147.229.14.146'}, 'INVITE': {'udp': '147.229.14.146', 'from': '"Petr Matousek"<sip:matousp@cesnet.cz>', 'invite': '541141118@cesnet.cz', 'source': '147.229.14.146', 'destination': '195.113.144.245', 'uri': 'sip:541141118@cesnet.cz', 'protocol': 17, 'timestamp_answer': 1225805502.024442, 'to': '<sip:541141118@cesnet.cz>', 'timestamp_start': 1225805502.018064, 'contact': '<sip:matousp@147.229.14.146:5060>', 'branch': 'z9hG4bK93e50e920000001949104ebe0000609800000006', 'sourcePort': 5060, 'call-id': 'D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146', 'destinationPort': 5060}}
+{'BYE': {'udp': '195.113.144.245', 'from': '<sip:541141118@cesnet.cz>', 'destinationPort': 5060, 'timestamp': 1225805650.687679, 'destination': '147.229.14.146', 'protocol': 17, 'source': '195.113.144.245', 'branch': 'z9hG4bKd3c7.0d6b8d23.0', 'sourcePort': 5060, 'call-id': 'D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146', 'bye': 'matousp@147.229.14.146:5060'}, 'REGISTER': {'udp': '147.229.14.146', 'destination': '195.113.144.245', 'from': '<sip:matousp@cesnet.cz>', 'destinationPort': 5060, 'source': '147.229.14.146', 'timestamp': 1225805491.66472, 'register': 'cesnet.cz', 'uri': 'sip:cesnet.cz', 'protocol': 17, 'to': '<sip:matousp@cesnet.cz>', 'contact': '<sip:matousp@147.229.14.146:5060>', 'branch': 'z9hG4bK93e50e920000000b49104eb300001aee00000003', 'sourcePort': 5060, 'call-id': 'A426EFAA-717B-456B-8AF4-490B52EDA028@147.229.14.146'}, 'INVITE': {'udp': '147.229.14.146', 'timestamp_end': 1225805650.687679, 'from': '"Petr Matousek"<sip:matousp@cesnet.cz>', 'invite': '541141118@cesnet.cz', 'source': '147.229.14.146', 'destination': '195.113.144.245', 'uri': 'sip:541141118@cesnet.cz', 'protocol': 17, 'timestamp_answer': 1225805511.817215, 'to': '<sip:541141118@cesnet.cz>', 'timestamp_start': 1225805502.018064, 'contact': '<sip:matousp@147.229.14.146:5060>', 'branch': 'z9hG4bK93e50e920000001949104ebe0000609800000006', 'sourcePort': 5060, 'call-id': 'D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146', 'destinationPort': 5060}}

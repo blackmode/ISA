@@ -348,9 +348,9 @@ def pktSearch(pkt,msg):
 
 
 # overi zdali se v nasledujicih paketech vyskytuje nejakY SIP REQUEST
-def pktReqSearch(pkts,req):
-	for index in range (len(pkts)):
-		if pktSearch(pkts[index],req):
+def pktReqSearch(pkts,index,req):
+	for i in range ((len(pkts))-(index+1)):
+		if pktSearch(pkts[index+i],req):
 			return True
 	return False
 
@@ -414,7 +414,7 @@ def executePkts(pkts):
 					if getAnswer(pkts[index+offset]) == 2:
 						#print (index,"uspech, registrace sepovedla, parsuju data")
 						tmplist = pktParser(pkts[index])
-						tmplist["timestamp"] = pkts[index].time
+						tmplist["timestamp"] = pkts[index+offset].time
 						data=addDictToDict("REGISTER",tmplist,data)
 						break
 
@@ -437,34 +437,56 @@ def executePkts(pkts):
 
 					# V PRIPADE ZE PRISEL cancel = UKONCENI
 					if pktSearch(pkts[index+offset],"CANCEL"):
+						print "prisel cancel, konec hovoru"
 						# ZPRAOVANI tj naparsovani dat o hovoru
 						tmplist = pktParser(pkts[index])
 						tmplist["timestamp_start"] = zacatek_hovoru
-						tmplist["timestamp_answer"] = pkts[index].time
+						# zde se predpoklada ze i kdyz neodpovedel, tak konec nastal pri cancel=answer i konec hovoru
+						# i kdyz mozna konec hovoru by mel byt az odpoved na cancel, jenze potom by samotnej konec hovor = cancel, protoze ho vypustil klient a ne server
+						tmplist["timestamp_answer"] = pkts[index+offset].time
+						tmplist["timestamp_end"] = pkts[index+offset].time
 						data=addDictToDict("INVITE",tmplist,data)
 						break
 
 
 					# pokud odpoved bude 1(trying) nebo 3(continue) nacitam dalsi odpovedi
 					if getAnswer(pkts[index+offset]) in [1,3]:
+						print "Tryin nebo continue, pokracuju"
 						offset = offset + 1
 						continue
 
 					# pokud odpoved je 4,5 nebo 6, znamena to preruseni nebo chybu a je jasne ze 
 					# registrace probehne znova, takze break
 					if getAnswer(pkts[index+offset]) in [4,5,6]:
+						print "prisla chyba, koncim a vyskakuju z invite zpracovani"
+						# prisla mi chyba, to znamena ze prijde ACK a pak mozny INVITE, A POKUD NE, je to konec hvoru
 						break
 
 					# pokud registrace probehla uspesne, zpracuju data o registraci
 					if getAnswer(pkts[index+offset]) == 2:
+						print "invite byl uspesny, parsuju data"
+						konec_hovoru = 0
 						tmplist = pktParser(pkts[index])
 						tmplist["timestamp_start"] = zacatek_hovoru
-						tmplist["timestamp_answer"] = pkts[index].time
+						tmplist["timestamp_answer"] = pkts[index+offset].time
+						# zpracovani SDP protokolu
+						# ....
+						# ...
+						# ..
+						# .
+						while (1):
+							offset = offset + 1
+							if (index+offset)<=(len(pkts)-1):
+								if pktSearch(pkts[index+offset],"BYE"):
+									konec_hovoru = pkts[index+offset].time
+									break
+
+						tmplist["timestamp_end"] = pkts[index+offset].time
 						data=addDictToDict("INVITE",tmplist,data)
 						break
 
 					# overim zdali, ma INVITE nejaky dalsi zadosti, pokud ne budu to povazovat za ukonecnej hovor
-					if pktReqSearch(pkts,"INVITE"):
+					if pktReqSearch(pkts,index,"INVITE"):
 						break
 
 					# pokud ale dale neni jiz invite, hovor zrejme skoncil
@@ -499,7 +521,7 @@ def executePkts(pkts):
 def sniffIfaceAndPort(interface,port):
 	if interface and port:
 		# odposlech rozhrani
-		ret = sniff(iface=interface,filter="port "+port,prn=filter2) # prn = funkce podle ktere se bude filtrovat
+		ret = sniff(iface=interface,filter="port "+str(port),prn=filter2) # prn = funkce podle ktere se bude filtrovat
 	else:
 		return False
 
