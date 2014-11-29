@@ -168,6 +168,7 @@ def pktSdpParser(pkt, mode=1):
 		# parsovani
 		media		=	re.findall(r'(?<=a=)\s*[^\\]+(?=\\)',load)
 		relation	=	re.search(r'(?<=m=)\s*[^\\]+(?=\\)',load)
+		adress		=	re.search(r'(?<=c=)\s*[^\\]+(?=\\)',load)
 
 		# zpracovani
 		if media is not None:
@@ -176,12 +177,16 @@ def pktSdpParser(pkt, mode=1):
 		if relation is not None:
 			ret2 = relation.group(0)
 
+		if adress is not None:
+			ret3 = adress.group(0)
+
 		# co vratit
 		if mode==1:
 			return ret
-		else:
+		elif mode==2:
 			return ret2
-
+		elif mode==3:
+			return ret2
 
 
 # overeni protokoli a portu
