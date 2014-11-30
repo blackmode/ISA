@@ -1,21 +1,2 @@
-
-
 <sipscan>
-	<registration>
-		<registratar ip="195.113.144.245" uri="cesnet.cz" />
-		<user-agent ip="147.229.14.146" uri="matousp@cesnet.cz">
-		<authentication username="matousp" realm="cesnet.cz" uri="cesnet.cz" />
-		<time registration registration="2008-11-04T14:31:31" />
-	</registration>
-	<call>
-		<caller ip="147.229.14.146" uri="matousp@cesnet.cz" />
-		<callee ip="195.113.144.245" uri="541141118@cesnet.cz" />
-		<time start="2008-11-04T14:31:42" answer="2008-11-04T14:31:51" end="2008-11-04T14:34:10" />
-		<rtp>
-			<caller ip="147.229.14.146" port="49152" />
-			<callee ip="147.229.252.55" port="16758" />
-			<codec payload-type="8" name="PCMA/8000" />
-		</rtp>
-	</call>
 </sipscan>
-

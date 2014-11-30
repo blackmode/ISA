@@ -259,7 +259,7 @@ def pktSdpParser(pkt, mode=1):
 		# parsovani
 		media		=	re.findall(r'(?<=a=)\s*[^\#]+(?=\#)',load)
 		relation	=	re.findall(r'(?<=\#m=)\s*[^\#]+(?=\#)',load)
-		adress		=	re.search(r'(?<=\#c=)\s*[^\#]+(?=\#)',load)
+		adress		=	re.search(r'(?<=\#o=)\s*[^\#]+(?=\#)',load)
 
 		# zpracovani
 		if media is not None:
@@ -298,7 +298,7 @@ def executePkts(pkts):
 
 	# zpracovani hovoru
 	for index in range (len(pkts)):
-		if pkts[index]:
+		if pkts[index] and (pkts[index])[Raw]:
 			#print pkts[index].show()
 			#print index
 			#print pkts[index].load
@@ -470,6 +470,9 @@ def executePkts(pkts):
 						tmplist["rtp_src_ip"] = parseAMCOfSDP(pktSdpParser(pkts[index],3),"c")
 						tmplist["rtp_dst_ip"] = parseAMCOfSDP(pktSdpParser(pkts[index+offset],3),"c")
 
+						print tmplist["rtp_src_ip"]
+						print tmplist["rtp_dst_ip"]
+
 						tmplist["timestamp_end"] = konec_hovoru
 						data=addDictToDict("INVITE",tmplist,data)
 						break
@@ -495,7 +498,7 @@ def executePkts(pkts):
 		# a nebude navazovat dal
 # v pripade ze hovor bude mit vice media descrioption, vipisu do xml vice <RTP> </RTP>
 
-	print pktsToXML(data)
+	#print pktsToXML(data)
 	return data
 
 # prevod paketu do XML
@@ -596,8 +599,8 @@ def filter2 (file, port=5060, bymsg=1):
 	#for pkt in pkts:
 	for index in range (len(pkts)):
 		# filtr, ktery vyhodi jine pakate nez na povolenych protokolech a portech
-		#if not checkProtocolAndPort(pkt,protocols,port,2):
-			#continue
+		if not checkProtocolAndPort(pkts[index],protocols,port):
+			continue
 			#pass
 		
 		# samotna zprava paketu se nahraje do pole
@@ -744,7 +747,14 @@ def addDictToDict(key,dic1,dic2):
 def sniffIfaceAndPort(interface,port):
 	if interface and port:
 		# odposlech rozhrani
-		ret = sniff(iface=interface,filter="port "+str(port),prn=filter2) # prn = funkce podle ktere se bude filtrovat
+		#ret = sniff(iface="eth1", prn=lambda x: x.show())
+		ret = ""
+		try:
+			ret = sniff(iface=interface,filter="tcp and port 80") # +str(port)prn = funkce podle ktere se bude filtrovat
+			for pkt in ret:
+				print pkt.show()
+		except:
+			error("nepovedlo se odposlechnout pakety",20)
 	else:
 		return False
 
@@ -783,11 +793,11 @@ def argsExecute(args):
 			error("zadany soubor nebyl nalezen, nebo neni citelny",13)
 
 	# osetreni povinnosti parametru
-	if not args.file and not args.interface:
+	if not args.file and not args.interface and not args.help:
 		error("musi byt zadan alespon jeden z dvojice parametru -i IFACE|-f FILE",14)
 
 	# osetreni povinnosti parametru
-	if not args.output:
+	if not args.output and not args.help:
 		error("parametr pro vystup musi byt zadan!",15)
 
 	# osetreni povinnosti parametru
@@ -797,7 +807,7 @@ def argsExecute(args):
 
 
 #regexp: load\s*=\s*[\'\"][^\'\"]+[\'\"] 
-sys.stdout = open('data.txt', 'w')
+#sys.stdout = open('data.txt', 'w')
 
 
 
@@ -821,7 +831,7 @@ except:
 
 
 # predvolanim parametru se nejprve osetri 
-#argsExecute(args)
+argsExecute(args)
 
 
 # help
@@ -830,26 +840,28 @@ if args.help:
 
 # overeni zdali je zadan port - volitelny, muze a nemusi
 if args.port:
-	port = args.port
+	port = int(args.port)
 else:
 	port = 5060 
 
+
+if args.output:
+	try:
+		outFile = open(args.output,"wt")
+	except:
+		error("nepovedlo se otevrit vystupni soubor",16)
+
 if args.interface:
-	sniffIfaceAndPort(args.interface,port)
+	data = sniffIfaceAndPort(args.interface,port)
+	data = executePkts(data)
+	xmlData = pktsToXML(data)
+	outFile.write(xmlData)
 
-
-
-
-#### TEST FUNCTIONS ############
-def callf():
-	f=filter2 ('sip.pcap') # pakety/prichozi_z_mobilu_odmitnuty
-	tmp = executePkts(f)
-	#print tmp
-
-
-
-
-callf()
+elif args.file:
+	f=filter2 (args.file,port)
+	data = executePkts(f)
+	xmlData = pktsToXML(data)
+	outFile.write(xmlData)
 
 
 exit(0)
