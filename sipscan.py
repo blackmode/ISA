@@ -170,7 +170,7 @@ def comp2list(lis1,lis2):
 
 
 
-def parseAMCOfSDP(param,mode="a"):
+def parseAMCOfSDP(param,mode="a",m="audio"):
 	ret = {}
 
 	# zisk kodeku z SDP
@@ -197,12 +197,26 @@ def parseAMCOfSDP(param,mode="a"):
 
 	# ziskani portu src a dst z SDP
 	elif mode=="m":
-		get_port = re.search(r'(?<=\s)[0-9]+(?=\s)',param)
+		if type(param)==str:
+			get_port = re.search(r'(?<=\s)[0-9]+(?=\s)',param)
 
-		if get_port is not None:
-			return get_port.group(0)
-		else:
-			return False
+			if get_port is not None:
+				return get_port.group(0)
+			else:
+				return False
+
+		elif type(param)==list:
+			if m=="audio":
+				get_port = re.search(r'(?<=audio\s)[0-9]+(?=\s)',param[0])
+
+			elif m=="video":
+				if len(param)>1:
+					get_port = re.search(r'(?<=video\s)[0-9]+(?=\s)',param[1])
+
+			if get_port is not None:
+				return get_port.group(0)
+			else:
+				return False
 
 	# zisk src a dst IP z SDP
 	elif mode=="c":
@@ -213,7 +227,7 @@ def parseAMCOfSDP(param,mode="a"):
 		else:
 			return False
 
-	# zisk src a dst IP z SDP
+	# zisk cisla kodeku a nahazeni do pole
 	elif mode=="m2":
 		param = param[::-1] # obraceni pro jednoduchost
 		get_codecs = re.search(r'([0-9]+\s)+',param)
@@ -244,7 +258,7 @@ def pktSdpParser(pkt, mode=1):
 
 		# parsovani
 		media		=	re.findall(r'(?<=a=)\s*[^\#]+(?=\#)',load)
-		relation	=	re.search(r'(?<=\#m=)\s*[^\#]+(?=\#)',load)
+		relation	=	re.findall(r'(?<=\#m=)\s*[^\#]+(?=\#)',load)
 		adress		=	re.search(r'(?<=\#c=)\s*[^\#]+(?=\#)',load)
 
 		# zpracovani
@@ -252,7 +266,7 @@ def pktSdpParser(pkt, mode=1):
 			ret = media
 
 		if relation is not None:
-			ret2 = relation.group(0)
+			ret2 = relation#relation.group(0)
 
 		if adress is not None:
 			ret3 = adress.group(0)
@@ -377,27 +391,60 @@ def executePkts(pkts):
 						print "zjistuju moznosti klienta:\r\n "
 						client = pktSdpParser(pkts[index])		# sem se nacte cely pole Acek
 
-						kodeky_klienta = parseAMCOfSDP(pktSdpParser(pkts[index],2),"m2")
-						kodeky_serveru = parseAMCOfSDP(pktSdpParser(pkts[index+offset],2),"m2")
-						matched_codecs = comp2list(kodeky_klienta,kodeky_serveru)
-						match=[]
+
+						# PRO AUDIO
+						kodeky_klienta_audio = parseAMCOfSDP(pktSdpParser(pkts[index],2)[0],"m2")
+						kodeky_serveru_audio = parseAMCOfSDP(pktSdpParser(pkts[index+offset],2)[0],"m2")
+						matched_codecs_audio = comp2list(kodeky_klienta_audio,kodeky_serveru_audio)
+
+						# PRO VIDEO
+						# existuje audio i video u klienta a serveru?
+						if len(pktSdpParser(pkts[index],2))==2 and len(pktSdpParser(pkts[index+offset],2))==2:	
+							kodeky_klienta_video = parseAMCOfSDP(pktSdpParser(pkts[index],2)[1],"m2")
+							kodeky_serveru_video = parseAMCOfSDP(pktSdpParser(pkts[index+offset],2)[1],"m2")
+							matched_codecs_video = comp2list(kodeky_klienta_video,kodeky_serveru_video)
+
+
+						match_audio=[]
+						match_video=[]
+
+						print kodeky_klienta_audio
+						print kodeky_serveru_audio
+						print matched_codecs_audio
+
 
 						# zde beru jeden obsah atrbitu a ze SDP a zjistuji zdali obsahuje payload z odpovedi SIP 200
 						for a in client:
+							print a
 							# pokud ano, vim ze se ma ten kodek pouzit a pridam ho
 							if re.search(r"(?<=:)\w+(?=\s)",a):
+								if re.search(r"fmtp",a): continue #x skip, neni kodek
 								anum = int((re.search(r"(?<=:)\w+(?=\s)",a)).group(0))
-								for mc in matched_codecs:
+								for mc in matched_codecs_audio:
 									if mc == anum:
-										match.append(a)
+										match_audio.append(a)
 
-						if match:
+								# existuje audio i video u klienta a serveru?	
+								if len(pktSdpParser(pkts[index],2))==2 and len(pktSdpParser(pkts[index+offset],2))==2:
+									for mc2 in matched_codecs_video:
+										if mc2 == anum:
+											match_video.append(a)
+
+						if match_audio:
 							# z tech shodnych vyparsuju informace o koduku
-							match = parseAMCOfSDP(match)
+							match_audio = parseAMCOfSDP(match_audio)
 
 							# prepisu shodna pole do tmp listu
-							for akey in match.keys():
-								tmplist[akey] = match[akey]
+							for akey in match_audio.keys():
+								tmplist[akey] = match_audio[akey]
+
+						if match_video:
+							# z tech shodnych vyparsuju informace o koduku
+							match_video = parseAMCOfSDP(match_video)
+
+							# prepisu shodna pole do tmp listu
+							for akey in match_video.keys():
+								tmplist[akey+"_video"] = match_video[akey]
 
 
 						# prochazim dal paketama az po BYE abych ziskal cas konce hovoru
@@ -416,6 +463,10 @@ def executePkts(pkts):
 						# zapisu rtp data ze SDP prtookolu do tmplistu
 						tmplist["rtp_src_port"] = parseAMCOfSDP(pktSdpParser(pkts[index],2),"m")
 						tmplist["rtp_dst_port"] = parseAMCOfSDP(pktSdpParser(pkts[index+offset],2),"m")
+
+						if len(pktSdpParser(pkts[index],2))==2 and len(pktSdpParser(pkts[index+offset],2))==2:
+							tmplist["rtp_src_port_video"] = parseAMCOfSDP(pktSdpParser(pkts[index],2),"m","video")
+							tmplist["rtp_dst_port_video"] = parseAMCOfSDP(pktSdpParser(pkts[index+offset],2),"m","video")
 
 						tmplist["rtp_src_ip"] = parseAMCOfSDP(pktSdpParser(pkts[index],3),"c")
 						tmplist["rtp_dst_ip"] = parseAMCOfSDP(pktSdpParser(pkts[index+offset],3),"c")
@@ -478,6 +529,20 @@ def pktsToXML(data):
 					output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type"+str(index+1)]+"\" name=\""+data[key]["name"+str(index+1)]+"\" />\r\n"
 
 			output = output +"\t\t</rtp>\r\n"
+
+			# overeni media description kodeku
+			if "rtp_src_port_video" in data[key].keys() and "payload-type_video" in data[key].keys() :
+				output = output +"\t\t<rtp>\r\n"
+				output = output +"\t\t\t<caller ip=\""+data[key]["rtp_src_ip"]+"\" port=\""+data[key]["rtp_src_port_video"]+"\" />\r\n"
+				output = output +"\t\t\t<callee ip=\""+data[key]["rtp_dst_ip"]+"\" port=\""+data[key]["rtp_dst_port_video"]+"\" />\r\n"
+				output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type_video"]+"\" name=\""+data[key]["name_video"]+"\" />\r\n"
+
+				if len(re.findall(r"payload-type_name\w+",countOfCols(data[key].keys())))>0:
+					for index in range (len(re.findall(r"payload-type_name\w+",countOfCols(data[key].keys())))):
+						output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type_video"+str(index+1)]+"\" name=\""+data[key]["name_video"+str(index+1)]+"\" />\r\n"
+
+
+				output = output +"\t\t</rtp>\r\n"
 			output = output +"\t</call>\r\n"
 	output = output +"</sipscan>\r\n"
 
@@ -796,18 +861,7 @@ exit(0)
 
 # co jeste udelat?
 # zjistit kolik media description je, tj na kolika se odmluvily a pak je taky vypsat do rtp
-# kodeky mam blbe, v a v INVITE josu moznosti, jaky se muzou zvolit, a v m v SIP 200 jsou ty ktery se maj zvolit
 
-# invite:
-#a=rtpmap:0 PCMU/8000
-#a=rtpmap:8 PCMA/8000
-#a=rtpmap:23 G726-16/8000
-#a=rtpmap:22 G726-24/8000
-#a=rtpmap:2 G726-32/8000
-#a=rtpmap:21 G726-40/8000
-#a=rtpmap:3 GSM/8000
-
-# OK: m=audio 5062 RTP/AVP 0 8 3
 
 # OSETRIT VSECHNY PRIPADY KOMUNIKACE V INVITE
 # ZJISTIT KTERY DATA SE MAJ KAM NACITAT

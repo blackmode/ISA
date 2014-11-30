@@ -28,6 +28,18 @@ invite byl uspesny, parsuju data
 
 zjistuju moznosti klienta:
  
+[101, 0, 8, 98, 97, 3]
+[8]
+[8]
+direction:passive
+rtpmap:3 GSM/8000
+rtpmap:97 iLBC/8000
+rtpmap:98 iLBC/8000
+fmtp:98 mode=20
+rtpmap:8 PCMA/8000
+rtpmap:0 PCMU/8000
+rtpmap:101 telephone-event/8000
+fmtp:101 0-11,16
 
 
 
