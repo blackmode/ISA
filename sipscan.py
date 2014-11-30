@@ -82,7 +82,7 @@ def getUri(line):
 
 		return v
 	else: 
-		return line
+		return line.replace("sip:","")
 
 # vyparsovani dulezitych dat z paketu invite
 def pktParser(pkt):
@@ -91,6 +91,7 @@ def pktParser(pkt):
 
 	# zpracovani SIP
 	if pkt.haslayer(Raw):
+
 		# nacteni obsahu paketu
 		load = repr(pkt[Raw].load)
 
@@ -209,6 +210,23 @@ def parseAMCOfSDP(param,mode="a"):
 
 		if get_ip is not None:
 			return get_ip.group(0)
+		else:
+			return False
+
+	# zisk src a dst IP z SDP
+	elif mode=="m2":
+		param = param[::-1] # obraceni pro jednoduchost
+		get_codecs = re.search(r'([0-9]+\s)+',param)
+
+		if get_codecs is not None:
+			ret=[]
+			# vydelame prazdne stringy
+			ar= (get_codecs.group(0)).split(" ")
+			for it in ar:
+				if it!="":
+					ret.append(int(it[::-1])) # potreba jeste jednou reverse pro puvodni hodnoty
+			return ret
+		return False
 
 
 def pktSdpParser(pkt, mode=1):
@@ -305,22 +323,18 @@ def executePkts(pkts):
 
 			if pktSearch(pkts[index],"INVITE"):
 				offset=1 # posun v poli paketu
-				print "skacu do INVITE"
+				print "skacu do INVITE\r\n"
 
 				# prisel prvni invite, zaznamenam zacatek hovoru do promenne
 				if (zacatek_hovoru==0):
 					zacatek_hovoru = pkts[index].time
-
-				print "zjistuju moznosti klienta: "
-				client = pktSdpParser(pkts[index])
-				print client
 
 				# zpraxovani hovoru
 				while(1):
 
 					# V PRIPADE ZE PRISEL cancel = UKONCENI
 					if pktSearch(pkts[index+offset],"CANCEL"):
-						print "prisel cancel, konec hovoru"
+						print "prisel cancel, konec hovoru\r\n"
 						# ZPRAOVANI tj naparsovani dat o hovoru
 						tmplist = pktParser(pkts[index])
 						tmplist["timestamp_start"] = zacatek_hovoru
@@ -334,21 +348,21 @@ def executePkts(pkts):
 
 					# pokud odpoved bude 1(trying) nebo 3(continue) nacitam dalsi odpovedi
 					if getAnswer(pkts[index+offset]) in [1,3]:
-						print "Tryin nebo continue, pokracuju"
+						print "Tryin nebo continue, pokracuju\r\n"
 						offset = offset + 1
 						continue
 
 					# pokud odpoved je 4,5 nebo 6, znamena to preruseni nebo chybu a je jasne ze 
 					# registrace probehne znova, takze break
 					if getAnswer(pkts[index+offset]) in [4,5,6]:
-						print "prisla chyba, koncim a vyskakuju z invite zpracovani"
+						print "prisla chyba, koncim a vyskakuju z invite zpracovani\r\n"
 						# prisla mi chyba, to znamena ze prijde ACK a pak mozny INVITE, A POKUD NE, je to konec hvoru
 						break
 
 					# pokud registrace probehla uspesne, zpracuju data o registraci
 					if getAnswer(pkts[index+offset]) == 2:
-						print "invite byl uspesny, parsuju data"
-						konec_hovoru = 0
+						print "invite byl uspesny, parsuju data\r\n"
+						konec_hovoru = 0 # init
 						tmplist = pktParser(pkts[index])
 						tmplist["timestamp_start"] = zacatek_hovoru
 						tmplist["timestamp_answer"] = pkts[index+offset].time
@@ -358,19 +372,33 @@ def executePkts(pkts):
 						# ...
 						# ..
 						# .
-						# zjistuju moznosti serveru
-						server =  pktSdpParser(pkts[index+offset])
 
-						if server and client:
-							# zjistim ktere polzoky se z obou poli shoduji a vratim jen ty shodne
-							matched = comp2list(server,client)
+						####### ==>>>>> zpracovani kodeku <<<<<<==== #########
+						print "zjistuju moznosti klienta:\r\n "
+						client = pktSdpParser(pkts[index])		# sem se nacte cely pole Acek
 
+						kodeky_klienta = parseAMCOfSDP(pktSdpParser(pkts[index],2),"m2")
+						kodeky_serveru = parseAMCOfSDP(pktSdpParser(pkts[index+offset],2),"m2")
+						matched_codecs = comp2list(kodeky_klienta,kodeky_serveru)
+						match=[]
+
+						# zde beru jeden obsah atrbitu a ze SDP a zjistuji zdali obsahuje payload z odpovedi SIP 200
+						for a in client:
+							# pokud ano, vim ze se ma ten kodek pouzit a pridam ho
+							if re.search(r"(?<=:)\w+(?=\s)",a):
+								anum = int((re.search(r"(?<=:)\w+(?=\s)",a)).group(0))
+								for mc in matched_codecs:
+									if mc == anum:
+										match.append(a)
+
+						if match:
 							# z tech shodnych vyparsuju informace o koduku
-							matched = parseAMCOfSDP(matched)
+							match = parseAMCOfSDP(match)
 
 							# prepisu shodna pole do tmp listu
-							for akey in matched.keys():
-								tmplist[akey] = matched[akey]
+							for akey in match.keys():
+								tmplist[akey] = match[akey]
+
 
 						# prochazim dal paketama az po BYE abych ziskal cas konce hovoru
 						posun = offset
@@ -382,7 +410,7 @@ def executePkts(pkts):
 									break
 
 							if (offset>len(pkts)):
-								print "fatal error"
+								#print "fatal error"
 								break # fatal error
 
 						# zapisu rtp data ze SDP prtookolu do tmplistu
