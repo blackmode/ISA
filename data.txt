@@ -1,61 +1,5 @@
 
 
-
-
-
-
-
-
-
-
-skacu do INVITE
-
-prisla chyba, koncim a vyskakuju z invite zpracovani
-
-
-
-
-
-
-
-skacu do INVITE
-
-Tryin nebo continue, pokracuju
-
-Tryin nebo continue, pokracuju
-
-invite byl uspesny, parsuju data
-
-zjistuju moznosti klienta:
- 
-[101, 0, 8, 98, 97, 3]
-[8]
-[8]
-direction:passive
-rtpmap:3 GSM/8000
-rtpmap:97 iLBC/8000
-rtpmap:98 iLBC/8000
-fmtp:98 mode=20
-rtpmap:8 PCMA/8000
-rtpmap:0 PCMU/8000
-rtpmap:101 telephone-event/8000
-fmtp:101 0-11,16
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <sipscan>
 	<registration>
 		<registratar ip="195.113.144.245" uri="cesnet.cz" />
@@ -75,4 +19,3 @@ fmtp:101 0-11,16
 	</call>
 </sipscan>
 
-{'REGISTER': {'username': 'matousp', 'udp': '147.229.14.146', 'destination': '195.113.144.245', 'from': 'matousp@cesnet.cz', 'source': '147.229.14.146', 'timestamp': 1225805491.66472, 'register': 'cesnet.cz', 'uri': 'cesnet.cz', 'to': 'matousp@cesnet.cz', 'contact': 'matousp@147.229.14.146:5060', 'destinationPort': 5060, 'sourcePort': 5060, 'call-id': 'A426EFAA-717B-456B-8AF4-490B52EDA028@147.229.14.146', 'realm': 'cesnet.cz'}, 'INVITE': {'rtp_dst_ip': '147.229.252.55', 'rtp_dst_port': '16758', 'timestamp_answer': 1225805511.817215, 'from': 'matousp@cesnet.cz', 'rtp_src_ip': '147.229.14.146', 'to': '541141118@cesnet.cz', 'destination': '195.113.144.245', 'source': '147.229.14.146', 'call-id': 'D40CA785-2EEE-4801-9B04-349632F56CDC@147.229.14.146', 'username': 'matousp', 'udp': '147.229.14.146', 'invite': '541141118@cesnet.cz', 'payload-type': '8', 'timestamp_start': 1225805502.018064, 'destinationPort': 5060, 'sourcePort': 5060, 'realm': 'cesnet.cz', 'rtp_src_port': '49152', 'name': 'PCMA/8000', 'uri': '541141118@cesnet.cz', 'contact': 'matousp@147.229.14.146:5060', 'timestamp_end': 1225805650.687679}}

@@ -303,7 +303,7 @@ def executePkts(pkts):
 			#print index
 			#print pkts[index].load
 			#print pktSdpParser(pkts[index])
-			print "\r\n"
+			#print "\r\n"
 			if pktSearch(pkts[index],"REGISTER"):
 				#print "skacu do REGISTER"
 				#print repr(pkts[index].load)
@@ -337,7 +337,7 @@ def executePkts(pkts):
 
 			if pktSearch(pkts[index],"INVITE"):
 				offset=1 # posun v poli paketu
-				print "skacu do INVITE\r\n"
+				#print "skacu do INVITE\r\n"
 
 				# prisel prvni invite, zaznamenam zacatek hovoru do promenne
 				if (zacatek_hovoru==0):
@@ -348,7 +348,7 @@ def executePkts(pkts):
 
 					# V PRIPADE ZE PRISEL cancel = UKONCENI
 					if pktSearch(pkts[index+offset],"CANCEL"):
-						print "prisel cancel, konec hovoru\r\n"
+						#print "prisel cancel, konec hovoru\r\n"
 						# ZPRAOVANI tj naparsovani dat o hovoru
 						tmplist = pktParser(pkts[index])
 						tmplist["timestamp_start"] = zacatek_hovoru
@@ -362,20 +362,20 @@ def executePkts(pkts):
 
 					# pokud odpoved bude 1(trying) nebo 3(continue) nacitam dalsi odpovedi
 					if getAnswer(pkts[index+offset]) in [1,3]:
-						print "Tryin nebo continue, pokracuju\r\n"
+						#print "Tryin nebo continue, pokracuju\r\n"
 						offset = offset + 1
 						continue
 
 					# pokud odpoved je 4,5 nebo 6, znamena to preruseni nebo chybu a je jasne ze 
 					# registrace probehne znova, takze break
 					if getAnswer(pkts[index+offset]) in [4,5,6]:
-						print "prisla chyba, koncim a vyskakuju z invite zpracovani\r\n"
+						#print "prisla chyba, koncim a vyskakuju z invite zpracovani\r\n"
 						# prisla mi chyba, to znamena ze prijde ACK a pak mozny INVITE, A POKUD NE, je to konec hvoru
 						break
 
 					# pokud registrace probehla uspesne, zpracuju data o registraci
 					if getAnswer(pkts[index+offset]) == 2:
-						print "invite byl uspesny, parsuju data\r\n"
+						#print "invite byl uspesny, parsuju data\r\n"
 						konec_hovoru = 0 # init
 						tmplist = pktParser(pkts[index])
 						tmplist["timestamp_start"] = zacatek_hovoru
@@ -388,7 +388,7 @@ def executePkts(pkts):
 						# .
 
 						####### ==>>>>> zpracovani kodeku <<<<<<==== #########
-						print "zjistuju moznosti klienta:\r\n "
+						#print "zjistuju moznosti klienta:\r\n "
 						client = pktSdpParser(pkts[index])		# sem se nacte cely pole Acek
 
 
@@ -408,14 +408,13 @@ def executePkts(pkts):
 						match_audio=[]
 						match_video=[]
 
-						print kodeky_klienta_audio
-						print kodeky_serveru_audio
-						print matched_codecs_audio
+						#print kodeky_klienta_audio
+						#print kodeky_serveru_audio
+						#print matched_codecs_audio
 
 
 						# zde beru jeden obsah atrbitu a ze SDP a zjistuji zdali obsahuje payload z odpovedi SIP 200
 						for a in client:
-							print a
 							# pokud ano, vim ze se ma ten kodek pouzit a pridam ho
 							if re.search(r"(?<=:)\w+(?=\s)",a):
 								if re.search(r"fmtp",a): continue #x skip, neni kodek
@@ -524,11 +523,13 @@ def pktsToXML(data):
 			output = output +"\t\t\t<callee ip=\""+data[key]["rtp_dst_ip"]+"\" port=\""+data[key]["rtp_dst_port"]+"\" />\r\n"
 			output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type"]+"\" name=\""+data[key]["name"]+"\" />\r\n"
 
-			if len(re.findall(r"payload-type\w+",countOfCols(data[key].keys())))>0:
+			if len(re.findall(r"payload-type[0-9]+\s",countOfCols(data[key].keys())))>0:
 				for index in range (len(re.findall(r"payload-type\w+",countOfCols(data[key].keys())))):
 					output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type"+str(index+1)]+"\" name=\""+data[key]["name"+str(index+1)]+"\" />\r\n"
 
 			output = output +"\t\t</rtp>\r\n"
+			#print len(re.findall(r"payload-type[0-9]+_video\s",countOfCols(data[key].keys())))
+			#print countOfCols(data[key].keys())
 
 			# overeni media description kodeku
 			if "rtp_src_port_video" in data[key].keys() and "payload-type_video" in data[key].keys() :
@@ -537,10 +538,9 @@ def pktsToXML(data):
 				output = output +"\t\t\t<callee ip=\""+data[key]["rtp_dst_ip"]+"\" port=\""+data[key]["rtp_dst_port_video"]+"\" />\r\n"
 				output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type_video"]+"\" name=\""+data[key]["name_video"]+"\" />\r\n"
 
-				if len(re.findall(r"payload-type_name\w+",countOfCols(data[key].keys())))>0:
-					for index in range (len(re.findall(r"payload-type_name\w+",countOfCols(data[key].keys())))):
-						output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type_video"+str(index+1)]+"\" name=\""+data[key]["name_video"+str(index+1)]+"\" />\r\n"
-
+				if len(re.findall(r"payload-type[0-9]+_video\s",countOfCols(data[key].keys())))>0:
+					for index in range (len(re.findall(r"payload-type[0-9]+_video\s",countOfCols(data[key].keys())))):
+						output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type"+str(index+1)+"_video"]+"\" name=\""+data[key]["name"+str(index+1)+"_video"]+"\" />\r\n"
 
 				output = output +"\t\t</rtp>\r\n"
 			output = output +"\t</call>\r\n"
@@ -849,7 +849,7 @@ def test():
 def callf():
 	f=filter2 ('sip.pcap') # pakety/prichozi_z_mobilu_odmitnuty
 	tmp = executePkts(f)
-	print tmp
+	#print tmp
 
 
 
