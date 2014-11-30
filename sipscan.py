@@ -841,11 +841,6 @@ if args.interface:
 
 
 #### TEST FUNCTIONS ############
-def test():
-	pkts = rdpcap('sip.pcap') 
-	for pkt in pkts:
-		print pkt.time
-
 def callf():
 	f=filter2 ('sip.pcap') # pakety/prichozi_z_mobilu_odmitnuty
 	tmp = executePkts(f)
@@ -859,10 +854,10 @@ callf()
 
 exit(0)
 
-# co jeste udelat?
-# zjistit kolik media description je, tj na kolika se odmluvily a pak je taky vypsat do rtp
-
+# co jeste udelat??????????????????????????????????
 
 # OSETRIT VSECHNY PRIPADY KOMUNIKACE V INVITE
 # ZJISTIT KTERY DATA SE MAJ KAM NACITAT
+# otestovat! Media description atd
+# sniffovaci funkce atd.! 
 # NAPSAT DOKUMENTACI A README!
