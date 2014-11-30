@@ -107,7 +107,7 @@ def pktParser(pkt):
 		register   = re.search(r"(?<=REGISTER\ssip:)\s*[^\s]+(?=\s)", paket)
 		invite     = re.search(r"(?<=INVITE\ssip:)[\w]+@[\w]+.[a-zA-Z]+", paket)
 		udp        = re.search(r"(?<=UDP\s)[\w\.]+(?=;)", paket)
-		to         = re.search(r"(?<=[tT][oO]:\s)([\w\s]+)?<[^>]+>", paket)
+		to         = re.search(r"(?<=[tT][oO]:\s)([\w\s\"\']+)?<[^>]+>", paket)
 		fromP      = re.search(r"(?<=From:\s)([\"\'\w\s]+)?<[^>]+>", paket)
 		contact    = re.search(r"(?<=Contact:\s)([\"\'\w\s]+)?<[^>]+>", paket)
 		callid     = re.search(r"(?<=Call-ID:\s)[\"\'\w\s\-]+@[\"\'\w\s\-\.]+(?=[\\\s])", paket)
@@ -298,7 +298,7 @@ def executePkts(pkts):
 
 	# zpracovani hovoru
 	for index in range (len(pkts)):
-		if pkts[index] and (pkts[index])[Raw]:
+		if pkts[index] and (Raw in pkts[index]):
 			#print pkts[index].show()
 			#print index
 			#print pkts[index].load
@@ -351,12 +351,20 @@ def executePkts(pkts):
 						#print "prisel cancel, konec hovoru\r\n"
 						# ZPRAOVANI tj naparsovani dat o hovoru
 						tmplist = pktParser(pkts[index])
+						#print "SRAC ZDE:"
+						#print pkts[index].load
 						tmplist["timestamp_start"] = zacatek_hovoru
 						# zde se predpoklada ze i kdyz neodpovedel, tak konec nastal pri cancel=answer i konec hovoru
 						# i kdyz mozna konec hovoru by mel byt az odpoved na cancel, jenze potom by samotnej konec hovor = cancel, protoze ho vypustil klient a ne server
 						tmplist["timestamp_answer"] = pkts[index+offset].time
 						tmplist["timestamp_end"] = pkts[index+offset].time
+						tmplist["rtp_src_port"] = parseAMCOfSDP(pktSdpParser(pkts[index],2),"m")
+						tmplist["rtp_src_ip"] = parseAMCOfSDP(pktSdpParser(pkts[index],3),"c")
+						#tmplist["rtp_dst_port"] = ""
+						#tmplist["rtp_dst_ip"] = ""
 						data=addDictToDict("INVITE",tmplist,data)
+						#print "cancel"
+						#print tmplist
 						break
 
 
@@ -371,6 +379,22 @@ def executePkts(pkts):
 					if getAnswer(pkts[index+offset]) in [4,5,6]:
 						#print "prisla chyba, koncim a vyskakuju z invite zpracovani\r\n"
 						# prisla mi chyba, to znamena ze prijde ACK a pak mozny INVITE, A POKUD NE, je to konec hvoru
+
+						# overim zdali, ma INVITE nejaky dalsi zadosti, pokud ne budu to povazovat za ukonecnej hovor
+						if pktReqSearch(pkts,(index+offset),"INVITE"):
+							break # pokud tam jeste INVITE JE, pouze breaknu
+						# pokud ale dale neni jiz invite, hovor zrejme skoncil
+						else:
+							# konec hovoru - kazdopadne bytam mela byt jeste ACK
+							konec_hovoru = 0 # init
+							tmplist = pktParser(pkts[index])
+							tmplist["timestamp_start"] = zacatek_hovoru
+							tmplist["timestamp_answer"] = pkts[index+offset].time	
+							tmplist["rtp_src_port"] = parseAMCOfSDP(pktSdpParser(pkts[index],2),"m")
+							tmplist["rtp_src_ip"] = parseAMCOfSDP(pktSdpParser(pkts[index],3),"c")
+							tmplist["timestamp_end"] = pkts[index+offset].time
+							#print tmplist
+							data=addDictToDict("INVITE",tmplist,data)
 						break
 
 					# pokud registrace probehla uspesne, zpracuju data o registraci
@@ -470,23 +494,13 @@ def executePkts(pkts):
 						tmplist["rtp_src_ip"] = parseAMCOfSDP(pktSdpParser(pkts[index],3),"c")
 						tmplist["rtp_dst_ip"] = parseAMCOfSDP(pktSdpParser(pkts[index+offset],3),"c")
 
-						print tmplist["rtp_src_ip"]
-						print tmplist["rtp_dst_ip"]
+						#print tmplist["rtp_src_ip"]
+						#print tmplist["rtp_dst_ip"]
 
 						tmplist["timestamp_end"] = konec_hovoru
 						data=addDictToDict("INVITE",tmplist,data)
 						break
 
-					# overim zdali, ma INVITE nejaky dalsi zadosti, pokud ne budu to povazovat za ukonecnej hovor
-					if pktReqSearch(pkts,index,"INVITE"):
-						#break
-						pass
-
-					# pokud ale dale neni jiz invite, hovor zrejme skoncil
-					else:
-						pass
-						# konec hovoru - kazdopadne bytam mela byt jeste ACK
-						# naparsovat data
 
 				# jump to index+offset => index je paket ktrey proveruji + preskocim 
 				# ty odpovedi, ktery prisly na invite coz je ten offset
@@ -509,22 +523,43 @@ def pktsToXML(data):
 	for key in data.keys():
 		if re.match(r"REGISTER\w*",key):
 			output = output +"\t<registration>\r\n"
-			output = output +"\t\t<registratar ip=\""+data[key]["destination"]+"\" uri=\""+data[key]["uri"]+"\" />\r\n"
-			output = output +"\t\t<user-agent ip=\""+data[key]["source"]+"\" uri=\""+data[key]["from"]+"\">\r\n"
-			output = output +"\t\t<authentication username=\""+data[key]["username"]+"\" realm=\""+data[key]["realm"]+"\" uri=\""+data[key]["uri"]+"\" />\r\n"
-			output = output +"\t\t<time registration registration=\""+getTimeFromTStamp(data[key]["timestamp"])+"\" />\r\n"
+
+			if "destination" in data[key].keys() and "uri" in data[key].keys():
+				output = output +"\t\t<registratar ip=\""+data[key]["destination"]+"\" uri=\""+data[key]["uri"]+"\" />\r\n"
+
+			if "source" in data[key].keys() and "from" in data[key].keys():
+				output = output +"\t\t<user-agent ip=\""+data[key]["source"]+"\" uri=\""+data[key]["from"]+"\">\r\n"
+
+			if "username" in data[key].keys() and "realm" in data[key].keys() and "uri" in data[key].keys():
+				output = output +"\t\t<authentication username=\""+data[key]["username"]+"\" realm=\""+data[key]["realm"]+"\" uri=\""+data[key]["uri"]+"\" />\r\n"
+			
+			if "timestamp" in data[key].keys():
+				output = output +"\t\t<time registration=\""+getTimeFromTStamp(data[key]["timestamp"])+"\" />\r\n"
+			
 			output = output +"\t</registration>\r\n"
 			print "\r\n"
 
 		if re.match(r"INVITE\w*",key):
 			output = output +"\t<call>\r\n"
-			output = output +"\t\t<caller ip=\""+data[key]["source"]+"\" uri=\""+data[key]["from"]+"\" />\r\n"
-			output = output +"\t\t<callee ip=\""+data[key]["destination"]+"\" uri=\""+data[key]["to"]+"\" />\r\n"
-			output = output +"\t\t<time start=\""+getTimeFromTStamp(data[key]["timestamp_start"])+"\" answer=\""+getTimeFromTStamp(data[key]["timestamp_answer"])+"\" end=\""+getTimeFromTStamp(data[key]["timestamp_end"])+"\" />\r\n"
+			if "source" in data[key].keys() and "from" in data[key].keys():
+				output = output +"\t\t<caller ip=\""+data[key]["source"]+"\" uri=\""+data[key]["from"]+"\" />\r\n"
+
+			if "destination" in data[key].keys() and "to" in data[key].keys():
+				output = output +"\t\t<callee ip=\""+data[key]["destination"]+"\" uri=\""+data[key]["to"]+"\" />\r\n"
+
+			if "timestamp_start" in data[key].keys() and "timestamp_answer" in data[key].keys() and "timestamp_end" in data[key].keys():
+				output = output +"\t\t<time start=\""+getTimeFromTStamp(data[key]["timestamp_start"])+"\" answer=\""+getTimeFromTStamp(data[key]["timestamp_answer"])+"\" end=\""+getTimeFromTStamp(data[key]["timestamp_end"])+"\" />\r\n"
+			
 			output = output +"\t\t<rtp>\r\n"
-			output = output +"\t\t\t<caller ip=\""+data[key]["rtp_src_ip"]+"\" port=\""+data[key]["rtp_src_port"]+"\" />\r\n"
-			output = output +"\t\t\t<callee ip=\""+data[key]["rtp_dst_ip"]+"\" port=\""+data[key]["rtp_dst_port"]+"\" />\r\n"
-			output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type"]+"\" name=\""+data[key]["name"]+"\" />\r\n"
+
+			if "rtp_src_ip" in data[key].keys() and "rtp_src_port" in data[key].keys():
+				output = output +"\t\t\t<caller ip=\""+data[key]["rtp_src_ip"]+"\" port=\""+data[key]["rtp_src_port"]+"\" />\r\n"
+
+			if "rtp_dst_ip" in data[key].keys() and "rtp_dst_port" in data[key].keys():
+				output = output +"\t\t\t<callee ip=\""+data[key]["rtp_dst_ip"]+"\" port=\""+data[key]["rtp_dst_port"]+"\" />\r\n"
+
+			if "payload-type" in data[key].keys() and "name" in data[key].keys():
+				output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type"]+"\" name=\""+data[key]["name"]+"\" />\r\n"
 
 			if len(re.findall(r"payload-type[0-9]+\s",countOfCols(data[key].keys())))>0:
 				for index in range (len(re.findall(r"payload-type\w+",countOfCols(data[key].keys())))):
@@ -537,9 +572,15 @@ def pktsToXML(data):
 			# overeni media description kodeku
 			if "rtp_src_port_video" in data[key].keys() and "payload-type_video" in data[key].keys() :
 				output = output +"\t\t<rtp>\r\n"
-				output = output +"\t\t\t<caller ip=\""+data[key]["rtp_src_ip"]+"\" port=\""+data[key]["rtp_src_port_video"]+"\" />\r\n"
-				output = output +"\t\t\t<callee ip=\""+data[key]["rtp_dst_ip"]+"\" port=\""+data[key]["rtp_dst_port_video"]+"\" />\r\n"
-				output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type_video"]+"\" name=\""+data[key]["name_video"]+"\" />\r\n"
+
+				if "rtp_src_ip" in data[key].keys() and "rtp_src_port_video" in data[key].keys():
+					output = output +"\t\t\t<caller ip=\""+data[key]["rtp_src_ip"]+"\" port=\""+data[key]["rtp_src_port_video"]+"\" />\r\n"
+
+				if "rtp_dst_ip" in data[key].keys() and "rtp_dst_port_video" in data[key].keys():
+					output = output +"\t\t\t<callee ip=\""+data[key]["rtp_dst_ip"]+"\" port=\""+data[key]["rtp_dst_port_video"]+"\" />\r\n"
+
+				if "payload-type_video" in data[key].keys() and "name_video" in data[key].keys():
+					output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type_video"]+"\" name=\""+data[key]["name_video"]+"\" />\r\n"
 
 				if len(re.findall(r"payload-type[0-9]+_video\s",countOfCols(data[key].keys())))>0:
 					for index in range (len(re.findall(r"payload-type[0-9]+_video\s",countOfCols(data[key].keys())))):
@@ -717,7 +758,8 @@ def pktSearch(pkt,msg):
 
 # overi zdali se v nasledujicih paketech vyskytuje nejakY SIP REQUEST
 def pktReqSearch(pkts,index,req):
-	for i in range ((len(pkts))-(index+1)):
+	for i in range ((len(pkts))-(index)):
+		#print i
 		if pktSearch(pkts[index+i],req):
 			return True
 	return False
@@ -750,9 +792,8 @@ def sniffIfaceAndPort(interface,port):
 		#ret = sniff(iface="eth1", prn=lambda x: x.show())
 		ret = ""
 		try:
-			ret = sniff(iface=interface,filter="tcp and port 80") # +str(port)prn = funkce podle ktere se bude filtrovat
-			for pkt in ret:
-				print pkt.show()
+			ret = sniff(iface=interface,filter="(tcp or udp) and port "+str(port)) # +str(port)prn = funkce podle ktere se bude filtrovat
+			#print ret
 		except:
 			error("nepovedlo se odposlechnout pakety",20)
 	else:
@@ -871,5 +912,3 @@ exit(0)
 # OSETRIT VSECHNY PRIPADY KOMUNIKACE V INVITE
 # ZJISTIT KTERY DATA SE MAJ KAM NACITAT
 # otestovat! Media description atd
-# sniffovaci funkce atd.! 
-# NAPSAT DOKUMENTACI A README!
