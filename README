@@ -1,0 +1,19 @@
+POPIS PROGRAMU:
+Program sipsan slouží pro analýzu SIP komunikace nad protokoly UDP/TCP/SCTP
+
+
+POUŽITÍ PROGRAMU:
+
+Použítí:  ./sipscan {-f|-i} name -o file [-p number] 
+
+-f [--file] name – vstupní soubor s daty pro analýzu
+-i [--interface] name – odchyt dat pro analýzu z rozhraní
+-o [--output] file – zápis výsledných XML do výstupního souboru
+-p [--port] num -- číslo portu, kde probíhala SIP
+
+
+SEZNAM ODEVZDANÝCH SOUBORŮ:
+
+sipscan.py
+manual.pdf
+README
