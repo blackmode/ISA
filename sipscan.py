@@ -57,12 +57,8 @@ def pktParser(pkt):
 
 	# zpracovani SIP
 	if pkt.haslayer(Raw):
-
-		# nacteni obsahu paketu
-		load = repr(pkt[Raw].load)
-
-		# ODSTRRANENI \'
-		paket = load.replace("'","") 
+		# nacteni obsahu paketu a ODSTRRANENI \'
+		paket = (repr(pkt[Raw].load)).replace("'","") 
 
 		# zpracovani paketu
 		uri   	   = re.search(r"(?<=uri\=[\"\'])\s*[^\"]+(?=\")", paket)
@@ -205,10 +201,8 @@ def pktSdpParser(pkt, mode=1):
 
 	# zpracovani SIP
 	if pkt.haslayer(Raw):
-
 		# OREZANI \' A nacteni obsahu paketu
 		load = (repr(pkt[Raw].load)[1:-1]).replace("\\r\\n","#")
-		#print load
 
 		# parsovani
 		media		=	re.findall(r'(?<=a=)\s*[^\#]+(?=\#)',load)
@@ -255,7 +249,6 @@ def executePkts(pkts):
 					# pokud odpoved je 4,5 nebo 6, znamena to preruseni nebo chybu a je jasne ze 
 					# registrace probehne znova, takze break
 					if getAnswer(pkts[index+offset]) in [4,5,6]:
-						#print (index,"prisla chyba, vyskakuju z cyklu a cekam na novej register")
 						break
 
 					# pokud registrace probehla uspesne, zpracuju data o registraci
@@ -303,6 +296,7 @@ def executePkts(pkts):
 						#print "Tryin nebo continue, pokracuju\r\n"
 						offset = offset + 1
 						continue
+					
 					if getAnswer(pkts[index+offset]) == False:
 						offset = offset + 1
 						continue
@@ -310,8 +304,6 @@ def executePkts(pkts):
 					# pokud odpoved je 4,5 nebo 6, znamena to preruseni nebo chybu a je jasne ze 
 					# registrace probehne znova, takze break
 					if getAnswer(pkts[index+offset]) in [4,5,6]:
-						# prisla mi chyba, to znamena ze prijde ACK a pak mozny INVITE, A POKUD NE, je to konec hvoru
-
 						# overim zdali, ma INVITE nejaky dalsi zadosti, pokud ne budu to povazovat za ukonecnej hovor
 						if pktReqSearch(pkts,(index+offset),"INVITE"):
 							break # pokud tam jeste INVITE JE, pouze breaknu
@@ -563,16 +555,12 @@ def filter2 (file, port=5060, bymsg=1):
 		# samotna zprava paketu se nahraje do pole
 		if (pkts[index]).haslayer(Raw):
 
-			# nacteni obsahu paketu
-		 	load = repr((pkts[index])[Raw].load)
+			# nacteni obsahu paketu + orezani apostrofu
+		 	load = (repr((pkts[index])[Raw].load)).replace("'","")
 
 		 	# projit zpravy po zprave
 		 	pom=1
 		 	for message in messages:
-
-		 		# orezani od apostrofu
-		 		load = load.replace("'","")
-
 		 		#zjisteni zdali se jedna o paket sip 
 		 		if re.match(r'^'+message,load):
 
@@ -594,12 +582,9 @@ def filter2 (file, port=5060, bymsg=1):
 # zjisteni typu paketu: 2 typy
 def getPktType (pkt):
 	if pkt.haslayer(Raw):
-		# nacteni obsahu paketu
-		load = repr(pkt[Raw].load)
-
-		# ODSTRRANENI \'   # moznost c.2: pkt = load[1:-1]
-		pkt = load.replace("'","") 
-
+		# nacteni obsahu paketu + odstraneni apostrofu (# moznost c.2: pkt = load[1:-1])
+		load = (repr(pkt[Raw].load)).replace("'","")   
+		
 		# typy zprav
 		messages = ["INVITE","ACK","BYE","REGISTER","CANCEL"] #,"REFER","OPTIONS","INFO"
 
@@ -625,11 +610,8 @@ def getTimeFromTStamp (timestamp):
 # vyparsovani navratoveho kodu z paketu
 def getAnswer(pkt,mode=1):
 	if pkt.haslayer(Raw):
-		# nacteni obsahu paketu
-		load = repr(pkt[Raw].load)
-
-		# ODSTRRANENI \'
-		pkt = load.replace("'","") 
+		# nacteni obsahu paketu + odstraneni apostrofu
+		load = (repr(pkt[Raw].load)).replace("'","") 
 
 		# vyprasuju z paketu SIP s verzi a navratovym kodem
 		match = re.search(r"SIP\/[0-9]+\.[0-9]+\s[0-9]{3,3}", pkt)
@@ -653,10 +635,7 @@ def getAnswer(pkt,mode=1):
 def pktSearch(pkt,msg):
 	if pkt.haslayer(Raw):
 		# nacteni obsahu paketu
-		load = repr(pkt.load) #repr(pkt[Raw].load)
-
-		# ODSTRRANENI \'
-		pkt = load.replace("'","")
+		load = (repr(pkt[Raw].load)).replace("'","") 
 
 		if re.match(r'^'+msg,pkt):
 			return True
@@ -696,7 +675,6 @@ def sniffIfaceAndPort(interface,port):
 		ret = ""
 		try:
 			ret = sniff(iface=interface,filter="(tcp or udp) and port "+str(port)) # +str(port)prn = funkce podle ktere se bude filtrovat
-			#print ret
 		except:
 			error("nepovedlo se odposlechnout pakety",20)
 	else:
