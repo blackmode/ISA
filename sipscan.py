@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-#from scapy import *
 try:
 	import sys
 	import logging
@@ -16,7 +15,6 @@ try:
 except:
 	sys.stderr.write("ERROR: nepodarilo se importovat vsechny potrebne knihovny\n")
 	exit(1)
-
 
 # napoveda
 def napoveda ():
@@ -42,44 +40,12 @@ def error(msg,errcode):
 	sys.stderr.write("ERROR: "+msg+"\n")
 	exit(errcode)
 
-
-
-# vytrovani protokolu
-def filter (file, port):
-
-	# jake porty filtrovat
-	if type(port) is list:
-		ports = port
-	elif type(port) is int:
-		ports = [port]
-	else:
-		error("spatny port",1)
-
-	# vystupni soubor
-	if os.path.isfile(file) and os.access(file, os.R_OK):
-		pkts = rdpcap(file)   
-	else:
-		error("Soubor neexistuje, nebo neni citelny",2)
-
-	# jake protokoly filtrovat
-	protocols = [UDP,TCP,RTP] 
-
-	# prochazim paket po paketu
-	for pkt in pkts:
-		for protocol in protocols: 												 # prochazim filtrovane protokoly
-			if protocol in pkt:													 #zjistuju zdali je dany paket daneho protokolu
-				if pkt[protocol].sport in ports or pkt[protocol].dport in ports: #zjistuju zdali je dany paket daneho protokolu
-					print pkt.show()
-
-
-
 # zisk URI
 def getUri(line):
 	if re.search(r"(?<=\<)[^>]+(?=\>)",line):
 		v = (re.search(r"(?<=\<)[^>]+(?=\>)",line)).group(0)
 		v = v.replace("sip:","")
 		v = v.replace("sips:","")
-
 		return v
 	else: 
 		return line.replace("sip:","")
@@ -100,8 +66,6 @@ def pktParser(pkt):
 
 		# zpracovani paketu
 		uri   	   = re.search(r"(?<=uri\=[\"\'])\s*[^\"]+(?=\")", paket)
-		in_uri     = re.search(r"(?<=in_uri\=sip:)[^\@]+@[\w\.\-\_\:]+(?=\s)", paket)
-		out_uri    = re.search(r"(?<=out_uri\=sip:)[^\@]+@[\w\.\-\_\:]+(?=\s)", paket)
 		bye   	   = re.search(r"(?<=BYE\ssip:)\s*[^\s]+(?=\s)", paket)
 		ack   	   = re.search(r"(?<=ACK\ssip:)\s*[^\s]+(?=\s)", paket)
 		register   = re.search(r"(?<=REGISTER\ssip:)\s*[^\s]+(?=\s)", paket)
@@ -110,7 +74,6 @@ def pktParser(pkt):
 		to         = re.search(r"(?<=[tT][oO]:\s)([\w\s\"\']+)?<[^>]+>", paket)
 		fromP      = re.search(r"(?<=From:\s)([\"\'\w\s]+)?<[^>]+>", paket)
 		contact    = re.search(r"(?<=Contact:\s)([\"\'\w\s]+)?<[^>]+>", paket)
-		callid     = re.search(r"(?<=Call-ID:\s)[\"\'\w\s\-]+@[\"\'\w\s\-\.]+(?=[\\\s])", paket)
 		realm      = re.search(r"(?<=realm=[\"\'])\s*[^\"\']+(?=[\"\'])", paket)
 		username   = re.search(r"(?<=username=[\"\'])\s*[^\"\']+(?=[\"\'])", paket)
 
@@ -123,13 +86,9 @@ def pktParser(pkt):
 		if to 		is not None: invitePacked["to"] 		= getUri(to.group(0))
 		if fromP 	is not None: invitePacked["from"] 		= getUri(fromP.group(0))
 		if contact  is not None: invitePacked["contact"]	= getUri(contact.group(0))
-		if callid   is not None: invitePacked["call-id"]	= callid.group(0)
 		if uri 		is not None: invitePacked["uri"] 		= getUri(uri.group(0))
-		if in_uri 	is not None: invitePacked["in_uri"]		= in_uri.group(0)
-		if out_uri 	is not None: invitePacked["out_uri"]	= out_uri.group(0)
 		if realm 	is not None: invitePacked["realm"]		= realm.group(0)
 		if username is not None: invitePacked["username"]	= username.group(0)
-
 
 	# zpracovani dat  z IP vrstvy
 	if pkt.haslayer(IP):
@@ -158,7 +117,6 @@ def pktParser(pkt):
 	#navrat
 	return invitePacked
 
-
 # srovnam dva seznamy a vratim shodne elemnty
 def comp2list(lis1,lis2):
 	new = []
@@ -166,9 +124,6 @@ def comp2list(lis1,lis2):
 		if el in lis2:
 			new.append(el)
 	return new
-
-
-
 
 def parseAMCOfSDP(param,mode="a",m="audio"):
 	ret = {}
@@ -242,7 +197,6 @@ def parseAMCOfSDP(param,mode="a",m="audio"):
 			return ret
 		return False
 
-
 def pktSdpParser(pkt, mode=1):
 	# init
 	sdp = {}
@@ -272,47 +226,29 @@ def pktSdpParser(pkt, mode=1):
 			ret3 = adress.group(0)
 
 		# co vratit
-		if mode==1:
-			return ret
-
-		elif mode==2:
-			return ret2
-
-		elif mode==3:
-			return ret3
-
+		  if mode==1: return ret
+		elif mode==2: return ret2
+		elif mode==3: return ret3
 
 # vyhodnoceni Paketu
 def executePkts(pkts):
-	#print "vstup do fce"
-	# navratove pole
 	retlist = []
 	tmplist = {}
 	registers = {}
-
 	newret  = []
 	data = {}
-	#data[el][prefix+el+sufix]=pk
-	#data[el]={prefix+el+sufix:pk}
 	zacatek_hovoru = 0  # prvni invite
 	odpoved_na_hovor = 0 # prvni invite
 
 	# zpracovani hovoru
 	for index in range (len(pkts)):
 		if pkts[index] and (Raw in pkts[index]):
-			#print pkts[index].show()
-			#print index
-			#print pkts[index].load
-			#print pktSdpParser(pkts[index])
-			#print "\r\n"
 			if pktSearch(pkts[index],"REGISTER"):
 				#print "skacu do REGISTER"
-				#print repr(pkts[index].load)
 				offset=1
 				while (1):
 					# pokud odpoved bude 1(trying) nebo 3(continue) nacitam dalsi odpovedi
 					if getAnswer(pkts[index+offset]) in [1,3]:
-						#print (index,"preskakuju a navysuju offset")
 						offset = offset + 1
 						continue
 
@@ -324,7 +260,6 @@ def executePkts(pkts):
 
 					# pokud registrace probehla uspesne, zpracuju data o registraci
 					if getAnswer(pkts[index+offset]) == 2:
-						#print (index,"uspech, registrace sepovedla, parsuju data")
 						tmplist = pktParser(pkts[index])
 						tmplist["timestamp"] = pkts[index+offset].time
 						data=addDictToDict("REGISTER",tmplist,data)
@@ -340,7 +275,6 @@ def executePkts(pkts):
 
 			if pktSearch(pkts[index],"INVITE"):
 				offset=1 # posun v poli paketu
-				#print "skacu do INVITE\r\n"
 
 				# prisel prvni invite, zaznamenam zacatek hovoru do promenne
 				if (zacatek_hovoru==0):
@@ -348,17 +282,11 @@ def executePkts(pkts):
 
 				# zpraxovani hovoru
 				while(1):
-
 					# V PRIPADE ZE PRISEL cancel = UKONCENI
 					if pktSearch(pkts[index+offset],"CANCEL"):
-						#print "prisel cancel, konec hovoru\r\n"
 						# ZPRAOVANI tj naparsovani dat o hovoru
 						tmplist = pktParser(pkts[index])
-						#print "SRAC ZDE:"
-						#print pkts[index].load
 						tmplist["timestamp_start"] = zacatek_hovoru
-						# zde se predpoklada ze i kdyz neodpovedel, tak konec nastal pri cancel=answer i konec hovoru
-						# i kdyz mozna konec hovoru by mel byt az odpoved na cancel, jenze potom by samotnej konec hovor = cancel, protoze ho vypustil klient a ne server
 						tmplist["timestamp_answer"] = pkts[index+offset].time
 						tmplist["timestamp_end"] = pkts[index+offset].time
 						tmplist["rtp_src_port"] = parseAMCOfSDP(pktSdpParser(pkts[index],2),"m")
@@ -366,12 +294,9 @@ def executePkts(pkts):
 						#tmplist["rtp_dst_port"] = ""
 						#tmplist["rtp_dst_ip"] = ""
 						data=addDictToDict("INVITE",tmplist,data)
-						#print "cancel"
-						#print tmplist
 						break
 
 					if offset > len(pkts)+50:break
-
 
 					# pokud odpoved bude 1(trying) nebo 3(continue) nacitam dalsi odpovedi
 					if getAnswer(pkts[index+offset]) in [1,3]:
@@ -385,7 +310,6 @@ def executePkts(pkts):
 					# pokud odpoved je 4,5 nebo 6, znamena to preruseni nebo chybu a je jasne ze 
 					# registrace probehne znova, takze break
 					if getAnswer(pkts[index+offset]) in [4,5,6]:
-						#print "prisla chyba, koncim a vyskakuju z invite zpracovani\r\n"
 						# prisla mi chyba, to znamena ze prijde ACK a pak mozny INVITE, A POKUD NE, je to konec hvoru
 
 						# overim zdali, ma INVITE nejaky dalsi zadosti, pokud ne budu to povazovat za ukonecnej hovor
@@ -401,7 +325,6 @@ def executePkts(pkts):
 							tmplist["rtp_src_port"] = parseAMCOfSDP(pktSdpParser(pkts[index],2),"m")
 							tmplist["rtp_src_ip"] = parseAMCOfSDP(pktSdpParser(pkts[index],3),"c")
 							tmplist["timestamp_end"] = pkts[index+offset].time
-							#print tmplist
 							data=addDictToDict("INVITE",tmplist,data)
 						break
 
@@ -414,16 +337,9 @@ def executePkts(pkts):
 						tmplist["timestamp_answer"] = pkts[index+offset].time
 
 						# zpracovani SDP protokolu
-						# ....
-						# ...
-						# ..
-						# .
-
 						####### ==>>>>> zpracovani kodeku <<<<<<==== #########
-						#print "zjistuju moznosti klienta:\r\n "
 						client = pktSdpParser(pkts[index])		# sem se nacte cely pole Acek
-
-
+						
 						# PRO AUDIO
 						try:
 							kodeky_klienta_audio = parseAMCOfSDP(pktSdpParser(pkts[index],2)[0],"m2")
@@ -440,11 +356,6 @@ def executePkts(pkts):
 
 						match_audio=[]
 						match_video=[]
-
-						#print kodeky_klienta_audio
-						#print kodeky_serveru_audio
-						#print matched_codecs_audio
-
 
 						# zde beru jeden obsah atrbitu a ze SDP a zjistuji zdali obsahuje payload z odpovedi SIP 200
 						try:
@@ -491,7 +402,6 @@ def executePkts(pkts):
 									break
 
 							if (posun>len(pkts)):
-								#print "fatal error"
 								break # fatal error
 
 						# zapisu rtp data ze SDP prtookolu do tmplistu
@@ -511,9 +421,6 @@ def executePkts(pkts):
 							tmplist["rtp_dst_ip"] = parseAMCOfSDP(pktSdpParser(pkts[index+offset],3),"c")
 						except:pass
 
-						#print tmplist["rtp_src_ip"]
-						#print tmplist["rtp_dst_ip"]
-
 						tmplist["timestamp_end"] = konec_hovoru
 						data=addDictToDict("INVITE",tmplist,data)
 						break
@@ -526,13 +433,6 @@ def executePkts(pkts):
 				# ty odpovedi, ktery prisly na invite coz je ten offset
 				index=index+offset
 				continue
-
-
-# OTAZKA K ZAMYSLENI, JAK BUDE VYPADAT VYSTUPNI XML, kdyz prijde CANCEL??? Nebo komunikace INVITE   skonci 4XX 
-		# a nebude navazovat dal
-# v pripade ze hovor bude mit vice media descrioption, vipisu do xml vice <RTP> </RTP>
-
-	#print pktsToXML(data)
 	return data
 
 # prevod paketu do XML
@@ -557,7 +457,6 @@ def pktsToXML(data):
 				output = output +"\t\t<time registration=\""+getTimeFromTStamp(data[key]["timestamp"])+"\" />\r\n"
 			
 			output = output +"\t</registration>\r\n"
-			#print "\r\n"
 
 		if re.match(r"INVITE\w*",key):
 			output = output +"\t<call>\r\n"
@@ -586,8 +485,6 @@ def pktsToXML(data):
 					output = output +"\t\t\t<codec payload-type=\""+data[key]["payload-type"+str(index+1)]+"\" name=\""+data[key]["name"+str(index+1)]+"\" />\r\n"
 
 			output = output +"\t\t</rtp>\r\n"
-			#print len(re.findall(r"payload-type[0-9]+_video\s",countOfCols(data[key].keys())))
-			#print countOfCols(data[key].keys())
 
 			# overeni media description kodeku
 			if "rtp_src_port_video" in data[key].keys() and "payload-type_video" in data[key].keys() :
@@ -609,9 +506,7 @@ def pktsToXML(data):
 				output = output +"\t\t</rtp>\r\n"
 			output = output +"\t</call>\r\n"
 	output = output +"</sipscan>\r\n"
-
 	return output
-
 
 # overeni protokoli a portu
 def checkProtocolAndPort (pkt,protocols,port,mode=1):
@@ -639,7 +534,6 @@ def checkProtocolAndPort (pkt,protocols,port,mode=1):
 				return True
 	return False
 
-
 # vyparsovani vsech paketu ze SIP zprava z paketuu pcap souboru
 def filter2 (file, port=5060, bymsg=1):
 
@@ -653,7 +547,7 @@ def filter2 (file, port=5060, bymsg=1):
 		error("chyba",2)
 
 	# jake zpravy a protokoly filtrovat
-	messages = ["SIP","INVITE","ACK","BYE","REGISTER","CANCEL"] #,"REFER","OPTIONS","INFO"
+	messages = ["SIP","INVITE","ACK","BYE","REGISTER","CANCEL"] 
 	protocols = [TCP,UDP,SCTP] # nad jakejma protokolama vetsinou bezi SIP
 
 	# navratove pole
@@ -665,8 +559,7 @@ def filter2 (file, port=5060, bymsg=1):
 		# filtr, ktery vyhodi jine pakate nez na povolenych protokolech a portech
 		if not checkProtocolAndPort(pkts[index],protocols,port):
 			continue
-			#pass
-		
+
 		# samotna zprava paketu se nahraje do pole
 		if (pkts[index]).haslayer(Raw):
 
@@ -696,10 +589,7 @@ def filter2 (file, port=5060, bymsg=1):
 		 	if pktSearch(pkts[index-1],"ACK") and pom==1:
 		 		pkts[index].load = "RTP "+str(index)+" "+str((pkts[index])[IP].src)+" "+str((pkts[index])[IP].dst)
 		 		retlist.append(pkts[index]) # zrejme se jedna o RTP paket
-
-		#retlist.append((pkts[index]))
 	return retlist
-
 
 # zjisteni typu paketu: 2 typy
 def getPktType (pkt):
@@ -726,13 +616,11 @@ def getPktType (pkt):
 	else:
 		return False
 
-
 # prevod casu
 def getTimeFromTStamp (timestamp):
 	t=datetime.datetime.fromtimestamp(round(int(timestamp)))
 	time=t.strftime("%Y-%m-%dT%H:%M:%S")
 	return time
-
 
 # vyparsovani navratoveho kodu z paketu
 def getAnswer(pkt,mode=1):
@@ -761,7 +649,6 @@ def getAnswer(pkt,mode=1):
 	else:
 		return False
 
-
 # overi zdali je v paketu zprava na zacatku
 def pktSearch(pkt,msg):
 	if pkt.haslayer(Raw):
@@ -778,7 +665,6 @@ def pktSearch(pkt,msg):
 	else:
 		return False 
 
-
 # overi zdali se v nasledujicih paketech vyskytuje nejakY SIP REQUEST
 def pktReqSearch(pkts,index,req):
 	for i in range ((len(pkts))-(index)):
@@ -786,7 +672,6 @@ def pktReqSearch(pkts,index,req):
 		if pktSearch(pkts[index+i],req):
 			return True
 	return False
-
 
 # pridani slovniku1 do slovniku2  pod klicem key
 def addDictToDict(key,dic1,dic2):
@@ -804,15 +689,10 @@ def addDictToDict(key,dic1,dic2):
 				newKey=newKey+1
 	return dic2
 
-
-
-
-
 # sniffovaci funkce pro odposlech rozhrani
 def sniffIfaceAndPort(interface,port):
 	if interface and port:
 		# odposlech rozhrani
-		#ret = sniff(iface="eth1", prn=lambda x: x.show())
 		ret = ""
 		try:
 			ret = sniff(iface=interface,filter="(tcp or udp) and port "+str(port)) # +str(port)prn = funkce podle ktere se bude filtrovat
@@ -824,8 +704,6 @@ def sniffIfaceAndPort(interface,port):
 
 	# navrat jako odposlechnute pakety a pote zpracovani jako souboru pcap
 	return ret
-
-
 
 # keys into string
 def countOfCols (columns):
@@ -866,15 +744,7 @@ def argsExecute(args):
 
 	# osetreni povinnosti parametru
 	if not args.output:
-		#if not os.path.isfile(args.output) or not os.access(args.output, os.W_OK):
 		error("zadany soubor pro VYSTUP nebyl nalezen, nebo neni zapisovatelny",16)
-
-
-#regexp: load\s*=\s*[\'\"][^\'\"]+[\'\"] 
-#sys.stdout = open('data.txt', 'w')
-
-
-
 
 # zpracovani parametru
 arguments = argparse.ArgumentParser(description="Skript do Predmetu ISA, SIPSCAN")
@@ -885,17 +755,13 @@ arguments.add_argument('--output','-o', action="store", dest="output")
 arguments.add_argument('--port','-p',    action="store", dest="port")
 arguments.add_argument("--help", "-h", action="store_true", dest="help")
 
-
 try:
-	## naparsovani argumentu
-	args = arguments.parse_args()
+	args = arguments.parse_args()## naparsovani argumentu
 except:
 	error("nepovoleny argument",1)
 
-
 # predvolanim parametru se nejprve osetri 
 argsExecute(args)
-
 
 # help
 if args.help:
@@ -906,7 +772,6 @@ if args.port:
 	port = int(args.port)
 else:
 	port = 5060 
-
 
 if args.output:
 	try:
@@ -919,18 +784,10 @@ if args.interface:
 	data = executePkts(data)
 	xmlData = pktsToXML(data)
 	outFile.write(xmlData)
-
 elif args.file:
 	f=filter2 (args.file,port)
 	data = executePkts(f)
 	xmlData = pktsToXML(data)
 	outFile.write(xmlData)
-
-
+	
 exit(0)
-
-# co jeste udelat??????????????????????????????????
-
-# OSETRIT VSECHNY PRIPADY KOMUNIKACE V INVITE
-# ZJISTIT KTERY DATA SE MAJ KAM NACITAT
-# otestovat! Media description atd
