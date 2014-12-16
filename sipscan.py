@@ -220,7 +220,7 @@ def pktSdpParser(pkt, mode=1):
 			ret3 = adress.group(0)
 
 		# co vratit
-		  if mode==1: return ret
+		if mode==1: return ret
 		elif mode==2: return ret2
 		elif mode==3: return ret3
 
