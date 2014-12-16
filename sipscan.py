@@ -600,8 +600,8 @@ def getAnswer(pkt,mode=1):
 def pktSearch(pkt,msg):
 	if pkt.haslayer(Raw):
 		# nacteni obsahu paketu
-		pkt = (repr(pkt[Raw].load)).replace("'","") 
-		if re.match(r'^'+msg,pkt):
+		load = (repr(pkt[Raw].load)).replace("'","") 
+		if re.match(r'^'+msg,load):
 			return True
 		else:
 			return False 
