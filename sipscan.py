@@ -558,24 +558,12 @@ def filter2 (file, port=5060, bymsg=1):
 		 	load = (repr((pkts[index])[Raw].load)).replace("'","")
 
 		 	# projit zpravy po zprave
-		 	pom=1
 		 	for message in messages:
 		 		#zjisteni zdali se jedna o paket sip 
 		 		if re.match(r'^'+message,load):
-
-		 			# v pripade ze ani, pridam ho do vysledneho pole
+		 			# v pripade ze shody pridam do vysledneho pole
 		 			retlist.append((pkts[index])) # retlist.append(load)
-		 			pom=0
 		 			break # nactu dalsi paket
-
-		 	# pokud jiz nasel zpracvu v paketu tak se o RTP nejedna
-		 	if pom==0: 
-		 		continue
-
-		 	# pokud na invite prislo ACK
-		 	if pktSearch(pkts[index-1],"ACK") and pom==1:
-		 		pkts[index].load = "RTP "+str(index)+" "+str((pkts[index])[IP].src)+" "+str((pkts[index])[IP].dst)
-		 		retlist.append(pkts[index]) # zrejme se jedna o RTP paket
 	return retlist
 
 # prevod casu
@@ -624,7 +612,6 @@ def pktSearch(pkt,msg):
 # overi zdali se v nasledujicih paketech vyskytuje nejakY SIP REQUEST
 def pktReqSearch(pkts,index,req):
 	for i in range ((len(pkts))-(index)):
-		#print i
 		if pktSearch(pkts[index+i],req):
 			return True
 	return False
@@ -666,7 +653,6 @@ def countOfCols (columns):
 	for key in columns:
 		str_out = str_out+" "+key
 	return str_out
-
 
 # osetreni kombinaci paramtru apod.
 def argsExecute(args):
