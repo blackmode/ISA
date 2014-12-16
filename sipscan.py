@@ -528,7 +528,6 @@ def checkProtocolAndPort (pkt,protocols,port,mode=1):
 
 # vyparsovani vsech paketu ze SIP zprava z paketuu pcap souboru
 def filter2 (file, port=5060, bymsg=1):
-
 	# vystupni soubor
 	try:
 		if os.path.isfile(file) and os.access(file, os.R_OK):
@@ -578,28 +577,6 @@ def filter2 (file, port=5060, bymsg=1):
 		 		pkts[index].load = "RTP "+str(index)+" "+str((pkts[index])[IP].src)+" "+str((pkts[index])[IP].dst)
 		 		retlist.append(pkts[index]) # zrejme se jedna o RTP paket
 	return retlist
-
-# zjisteni typu paketu: 2 typy
-def getPktType (pkt):
-	if pkt.haslayer(Raw):
-		# nacteni obsahu paketu + odstraneni apostrofu (# moznost c.2: pkt = load[1:-1])
-		load = (repr(pkt[Raw].load)).replace("'","")   
-		
-		# typy zprav
-		messages = ["INVITE","ACK","BYE","REGISTER","CANCEL"] #,"REFER","OPTIONS","INFO"
-
-		# zjistim o jaky typ paketu se jedna
-		# 1=POZADAVEK
-		# 2=ODPOVED na pozadavek
-		if re.match(r'^SIP\/[0-9]+\.[0-9]+\s[0-9]{3,3}',pkt):
-			return 2
-		for msg in messages:
-			#if msg in pkt:
-			if re.match(r'^'+msg,pkt):
-				return 1
-		return False
-	else:
-		return False
 
 # prevod casu
 def getTimeFromTStamp (timestamp):
