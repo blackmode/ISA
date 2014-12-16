@@ -579,7 +579,7 @@ def getAnswer(pkt,mode=1):
 		load = (repr(pkt[Raw].load)).replace("'","") 
 
 		# vyprasuju z paketu SIP s verzi a navratovym kodem
-		match = re.search(r"SIP\/[0-9]+\.[0-9]+\s[0-9]{3,3}", pkt)
+		match = re.search(r"SIP\/[0-9]+\.[0-9]+\s[0-9]{3,3}", load)
 		if match is None:
 			return False
 		else:
@@ -600,8 +600,7 @@ def getAnswer(pkt,mode=1):
 def pktSearch(pkt,msg):
 	if pkt.haslayer(Raw):
 		# nacteni obsahu paketu
-		load = (repr(pkt[Raw].load)).replace("'","") 
-
+		pkt = (repr(pkt[Raw].load)).replace("'","") 
 		if re.match(r'^'+msg,pkt):
 			return True
 		else:
